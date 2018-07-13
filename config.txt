@@ -1,0 +1,24 @@
+~ CONFIG
+# CUSTOM 3
+CUSTOM1 4 AMF FTO SBB YRS
+CUSTOM2 4 MRC SJF SNS TLG 
+CUSTOM6152 3 AMF SJF GGT
+# CORRELATE 4
+* 1 GGT
+_3 3 GGT &0 &1
+GGT 2 ! GGT
+# STOP
+
+
+
+
+_{X} : length of X
+&{str} : starts with
+! : reset associated comparisons
+-{str} : remove associated string (starts with check)
+* : all
+
+order matters!
+literal definitions ( {varname} {num_rules} {rules...} ) auto-reset the rules for that variable with an impicit ! directive
+* directives must come first as they overwrite everything
+custom vars do not support directives
