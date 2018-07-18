@@ -1,7 +1,7 @@
 #include <vector>
 #include <math.h> 
 #include "main.h"
-#include "theilsen.h"
+#include "util.h"
 
 bool linear_regression(linreg_result_t &result, std::vector<row_t> &table) {
 	double sumx = 0.0; // sum of x     
@@ -10,12 +10,12 @@ bool linear_regression(linreg_result_t &result, std::vector<row_t> &table) {
 	double sumy = 0.0; // sum of y     
 	double sumy2 = 0.0; // sum of y**2  
 
-	for (int i = 0; i< table.size(); i++) {
+	for (unsigned int i = 0; i< table.size(); i++) {
 		sumx += date_as_month(table.at(i).date); //x[i];
 		sumx2 += pow(date_as_month(table.at(i).date), 2);
-		sumxy += date_as_month(table.at(i).date) * table.at(i).value;
-		sumy += table.at(i).value; // y[i];
-		sumy2 += pow(table.at(i).value, 2);
+		sumxy += date_as_month(table.at(i).date) * table.at(i).value.v;
+		sumy += table.at(i).value.v; // y[i];
+		sumy2 += pow(table.at(i).value.v, 2);
 	}
 
 	double denom = (table.size() * sumx2 - pow(sumx, 2));
