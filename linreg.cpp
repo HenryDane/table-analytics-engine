@@ -3,7 +3,8 @@
 #include "main.h"
 #include "util.h"
 
-bool linear_regression(linreg_result_t &result, std::vector<row_t> &table) {
+bool linear_regression(linreg_result_t &result, std::vector<row_t> table) {
+	null_shield(table);
 	double sumx = 0.0; // sum of x     
 	double sumx2 = 0.0; // sum of x**2  
 	double sumxy = 0.0; // sum of x * y 
@@ -11,9 +12,9 @@ bool linear_regression(linreg_result_t &result, std::vector<row_t> &table) {
 	double sumy2 = 0.0; // sum of y**2  
 
 	for (unsigned int i = 0; i< table.size(); i++) {
-		sumx += date_as_month(table.at(i).date); //x[i];
-		sumx2 += pow(date_as_month(table.at(i).date), 2);
-		sumxy += date_as_month(table.at(i).date) * table.at(i).value.v;
+		sumx += date_as_day(table.at(i).date); //x[i];
+		sumx2 += pow(date_as_day(table.at(i).date), 2);
+		sumxy += date_as_day(table.at(i).date) * table.at(i).value.v;
 		sumy += table.at(i).value.v; // y[i];
 		sumy2 += pow(table.at(i).value.v, 2);
 	}
@@ -21,6 +22,7 @@ bool linear_regression(linreg_result_t &result, std::vector<row_t> &table) {
 	double denom = (table.size() * sumx2 - pow(sumx, 2));
 	if (denom == 0) {
 		// singular matrix. can't solve the problem.
+		printf("linear_regression() -> SINGULAR MATRIX CAN NOT SOLVE! \n");
 		result.m = NAN;
 		result.b = NAN;
 		if (result.r) result.r = NAN;
@@ -33,5 +35,7 @@ bool linear_regression(linreg_result_t &result, std::vector<row_t> &table) {
 		sqrt((sumx2 - pow(sumx, 2) / table.size()) *
 		(sumy2 - pow(sumy, 2) / table.size()));
 
+	//printf("linear_regression() -> ts: %d sumx: %f sumy: %f sumxy: %f sumxx: %f sumyy: %f denom: %f\n",
+	//	table.size(), sumx, sumy, sumxy, sumx2, sumy2, denom);
 	return true;
 }

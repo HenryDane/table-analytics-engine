@@ -1,12 +1,16 @@
 #include <vector>
 #include <sstream>
 #include <cmath>
+#include <iostream>
 #include "main.h"
 #include "mkt.h"
 #include "scimath.h"
+#include "util.h"
 
-void mann_kendall_test(mk_result_t &mkrt, std::vector<row_t> &table, double alpha, double threshold) {
-	int n = table.size();
+void mann_kendall_test(mk_result_t &mkrt, std::vector<row_t> table, double alpha, double threshold) {
+	null_shield(table);
+
+	unsigned int n = table.size();
 
 	// calculate S
 	int s = 0;
@@ -15,6 +19,8 @@ void mann_kendall_test(mk_result_t &mkrt, std::vector<row_t> &table, double alph
 			s += np_sign(table.at(j).value.v - table.at(k).value.v);
 		}
 	}
+	//printf("%d \n", s);
+	//abort();
 
 #if F_CORRECT_TIES == 1
 	// calculate the unique data
@@ -69,6 +75,8 @@ void mann_kendall_test(mk_result_t &mkrt, std::vector<row_t> &table, double alph
 	}
 
 	double p = 2 * (1 - norm_cdf(abs(z)));
+	//printf("\n::: %f %f %f %f | %f %f | %d %d \n", p, norm_cdf(abs(z)), abs(z), z, s, var_s, n, 0);
+	//std::cout << p << " " << norm_cdf(abs(z)) << " " << abs(z) << " " << z << " " << s << " " << var_s << " " << n << " " << 0 << std::endl;
 	bool h = abs(z) > norm_ppf(1 - alpha / 2);
 
 	std::string trend;

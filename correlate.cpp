@@ -10,17 +10,27 @@
 	Data must be aggregated at the same level
 	ALWAYS PRINT RESULT WITH %f IN printf() CALLS FOR LESS FRUSTRATION (2.5 hrs)
 */
-double mean(std::vector<row_t> &table) {
+
+double median(std::vector<row_t> table) {
+	null_shield(table);
+	std::sort(table.begin(), table.end(), table_value_sort);
+	//printf("median() -> start: %f middle: %f, end: %f", table.at(0).value.v, table.at((table.size() / 2)).value.v, table.at(table.size() - 1).value.v);
+	return table.at(table.size() / 2).value.v;
+}
+
+double mean(std::vector<row_t> table) {
+	null_shield(table);
 	double a = 0;
 
 	for (unsigned int i = 0; i < table.size(); i++) {
 		a += table.at(i).value.v;
 	}
-
+	//printf("mean() -> a: %f size: %d mean: %f\n", a, table.size(), a / table.size());
 	return (a / table.size());
 }
 
-double std_dev(std::vector<row_t> &table) {
+double std_dev(std::vector<row_t> table) {
+	null_shield(table);
 	double mu = mean(table);
 	double a = 0;
 
@@ -28,6 +38,7 @@ double std_dev(std::vector<row_t> &table) {
 		a += pow(table.at(i).value.v - mu, 2);
 	}
 
+	//printf("std_dev() -> a: %f mu: %f tbl: %d inner: %f, result: %f\n", a, mu, table.size(), a / table.size(), sqrt(a/ table.size()));
 	return sqrt(a / table.size());
 }
 
@@ -35,7 +46,7 @@ double std_dev(std::vector<row_t> &table) {
 	"right-hand" running average
 	mov_avg will be smaller than table by windowsize
 */
-void running_avg(std::vector<row_t> &table, std::vector<double> mov_avg, int windowSize) {
+void running_avg(std::vector<row_t> table, std::vector<double> &mov_avg, int windowSize) {
 	int NUMBERS_SIZE = table.size();
 	double * numbers = new double[NUMBERS_SIZE];
 	for (int i = 0; i < NUMBERS_SIZE; i++) {
@@ -69,7 +80,7 @@ void running_avg(std::vector<row_t> &table, std::vector<double> mov_avg, int win
 	delete[] numbers;
 }
 
-double coef_var(std::vector<row_t> &table) {
+double coef_var(std::vector<row_t> table) {
 	return (std_dev(table) / mean(table));
 }
 
@@ -79,16 +90,23 @@ inline bool IsNaN(float A)
 }
 
 double correlation(std::vector<row_t> tablea, std::vector<row_t> tableb, bool d) {
-#if F_SKIP_NULLS == 0
 
 	// resolve NAN
 	std::sort(tablea.begin(), tablea.end(), date_sort);
 	std::sort(tableb.begin(), tableb.end(), date_sort);
 
+	// delete rows which contain 1 or more null
+	strip_null(tablea, tableb);
+
+	std::sort(tablea.begin(), tablea.end(), date_sort);
+	std::sort(tableb.begin(), tableb.end(), date_sort);
+
 	if (d) {
 		printf("ORIGINAL: A(%s -> %s) B(%s -> %s)\n",
-			date_toString(tablea.at(0).date).c_str(), date_toString(tablea.at(tablea.size() - 1).date).c_str(),
-			date_toString(tableb.at(0).date).c_str(), date_toString(tableb.at(tableb.size() - 1).date).c_str());
+			date_toString(tablea.at(0).date).c_str(), 
+			date_toString(tablea.at(tablea.size() - 1).date).c_str(),
+			date_toString(tableb.at(0).date).c_str(), 
+			date_toString(tableb.at(tableb.size() - 1).date).c_str());
 	}
 
 	date_t startdate = max_date(tablea.at(0).date, tableb.at(0).date);
@@ -96,33 +114,33 @@ double correlation(std::vector<row_t> tablea, std::vector<row_t> tableb, bool d)
 
 	// clip start date
 	for (unsigned int idx = 0; idx < tablea.size(); idx++) {
-		//printf("%d / %d\r", idx, tablea.size());
-		if (is_equal(tablea.at(idx).date, startdate)) {
+		if (tablea.at(idx).date <= startdate /*is_equal(tablea.at(idx).date, startdate)*/) {
 			tablea.erase(tablea.begin(), tablea.begin() + idx);
-			break;
+			if (tablea.size() == 0) return INFINITY;
+			idx = std::min((unsigned int) 0, idx - 1);
 		}
 	}
 	for (unsigned int idx = 0; idx < tableb.size(); idx++) {
-		//printf("%d / %d\r", idx, tableb.size());
-		if (is_equal(tableb.at(idx).date, startdate)) {
+		if (tableb.at(idx).date <= startdate /*is_equal(tableb.at(idx).date, startdate)*/) {
 			tableb.erase(tableb.begin(), tableb.begin() + idx);
-			break;
+			if (tableb.size() == 0) return INFINITY;
+			idx = std::min((unsigned int)0, idx - 1);
 		}
 	}
 	// clip end date
 	for (unsigned int idx = 0; idx < tablea.size(); idx++) {
-		//printf("%d / %d\r", idx, tablea.size());
-		if (is_equal(tablea.at(idx).date, enddate)) {
-			if (idx + 1 >= tablea.size()) break;
-			tablea.erase(tablea.begin() + idx + 1, tablea.end());
+		if (tablea.at(idx).date >= enddate/*is_equal(tablea.at(idx).date, enddate)*/) {
+			//if (idx + 1 >= tablea.size()) break;
+			tablea.erase(tablea.begin() + idx, tablea.end());
+			if (tablea.size() == 0) return INFINITY;
 			break;
 		}
 	}
 	for (unsigned int idx = 0; idx < tableb.size(); idx++) {
-		//printf("%d / %d\r", idx, tableb.size());
-		if (is_equal(tableb.at(idx).date, enddate)) {
-			if (idx + 1 >= tableb.size()) break;
-			tableb.erase(tableb.begin() + idx + 1, tableb.end());
+		if (tableb.at(idx).date >= enddate/*is_equal(tableb.at(idx).date, enddate)*/) {
+			//if (idx + 1 >= tableb.size()) break;
+			tableb.erase(tableb.begin() + idx, tableb.end());
+			if (tableb.size() == 0) return INFINITY;
 			break;
 		}
 	}
@@ -134,17 +152,14 @@ double correlation(std::vector<row_t> tablea, std::vector<row_t> tableb, bool d)
 	}
 
 	if (tablea.size() != tableb.size()) {
-		printf("wrong size! %d %d\n", tablea.size(), tableb.size());
-		return INFINITY;
+		for (int i = 0; i < std::min(tablea.size(), tableb.size()); i++) {
+			if (d) printf("%s [%f] | %s [%f]\n", date_toString(tablea.at(i).date).c_str(), tablea.at(i).value.v, date_toString(tableb.at(i).date).c_str(), tableb.at(i).value.v);
+		}
+		if (d) printf("wrong size! %d %d\n", tablea.size(), tableb.size());
+		if (d) printf("CRASHING! \n");
+		/*abort();
+		return INFINITY;*/
 	}
-
-#elif F_SKIP_NULLS == 1
-#if _MSC_VER
-#pragma message ("Warning : F_SKIP_NULLS=1 is unsafe for double correlation(std::vector<row_t>, std::vector<row_t>, bool )")
-#elif   __GNUC__
-	#warning("Warning : F_SKIP_NULLS=1 is unsafe for double correlation(std::vector<row_t>, std::vector<row_t>, bool )")
-#endif
-#endif
 
 	double sum_a = 0;
 	double sum_b = 0;
@@ -154,9 +169,17 @@ double correlation(std::vector<row_t> tablea, std::vector<row_t> tableb, bool d)
 
 	//printf("%d == %d\n", a.size(), b.size());
 
-	int n = tablea.size();
+	int n = std::min(tablea.size(), tableb.size());
+	if (n == 0 || n == 1) {
+		return INFINITY;
+	}
 
 	for (int i = 0; i < n; i++){
+		if (tablea.at(i).value.f || tableb.at(i).value.f ||
+			isnan(tablea.at(i).value.v) || isnan(tableb.at(i).value.v)) {
+			if (d) printf("I FOUND A NULL!\n");
+			continue;
+		}
 		// sum of elements of array A.
 		sum_a += tablea.at(i).value.v;
 
@@ -178,12 +201,15 @@ double correlation(std::vector<row_t> tablea, std::vector<row_t> tableb, bool d)
 	sum_ab = sum_ab / n;
 
 	double corr = ((sum_ab) - (sum_a * sum_b)) / ( sqrt((sumsq_a) - (sum_a * sum_a )) * sqrt((sumsq_b) - (sum_b * sum_b)));
-	//if (d) printf("%f %d (%d, %d) %f %f %f %f %f\n", corr, n, e_a - s_a, e_b - s_b, sum_a, sumsq_a, sum_b, sumsq_b, sum_ab);
+	if (d) printf("%f %d (%d, %d) %f %f %f %f %f\n", corr, n, n, n, sum_a, sumsq_a, sum_b, sumsq_b, sum_ab);
 	return corr;
 }
 
 // from https://www.youtube.com/watch?v=3jr_vbxajcs
 double partial_correlate(std::vector<row_t> A, std::vector<row_t> B, std::vector<row_t> Z, bool d) {
+	d = true;
+	printf(">>> %d %d %d\n", A.size(), B.size(), Z.size());
+	strip_null(A, B, Z);
 	int num = -1;
 
 	// sums
@@ -200,6 +226,7 @@ double partial_correlate(std::vector<row_t> A, std::vector<row_t> B, std::vector
 	double sum_zz = 0;
 
 	// fastish filter
+	printf("sorting %d %d %d\n", A.size(), B.size(), Z.size());
 	std::sort(A.begin(), A.end(), date_sort);
 	std::sort(B.begin(), B.end(), date_sort);
 	std::sort(Z.begin(), Z.end(), date_sort);
@@ -209,58 +236,63 @@ double partial_correlate(std::vector<row_t> A, std::vector<row_t> B, std::vector
 			date_toString(B.at(0).date).c_str(), date_toString(B.at(B.size() - 1).date).c_str(),
 			date_toString(Z.at(0).date).c_str(), date_toString(Z.at(Z.size() - 1).date).c_str());
 	}
-	date_t end_date = min_date(A.at(A.size() - 1).date, min_date(B.at(B.size() - 1).date, Z.at(Z.size() - 1).date));
+	date_t end_date = { 9999, 99, 99, 99, 99 };
+	try {
+		end_date = min_date(A.at(A.size() - 1).date, min_date(B.at(B.size() - 1).date, Z.at(Z.size() - 1).date));
+	} catch (std::exception &e) {
+		printf("%d %d %d !!! [%s]\n", A.size(), B.size(), Z.size(), e.what());
+		printf("%s %s\n", B.at(0).variable.c_str(), Z.at(0).variable.c_str());
+	}
 	date_t start_date = max_date(A.at(0).date, max_date(B.at(0).date, Z.at(0).date));
 	//printf("clippng\n");
+
 	// clip start date
 	for (unsigned int idx = 0; idx < A.size(); idx++) {
-		//printf("%d / %d\r", idx, A.size());
-		if (is_equal(A.at(idx).date, start_date)) {
+		if (A.at(idx).date <= start_date /*is_equal(tablea.at(idx).date, startdate)*/) {
 			A.erase(A.begin(), A.begin() + idx);
-			break;
+			if (A.size() == 0) return INFINITY;
+			idx = std::min((unsigned int)0, idx - 1);
 		}
 	}
 	for (unsigned int idx = 0; idx < B.size(); idx++) {
-		//printf("%d / %d\r", idx, B.size());
-		if (is_equal(B.at(idx).date, start_date)) {
+		if (B.at(idx).date <= start_date /*is_equal(tableb.at(idx).date, startdate)*/) {
 			B.erase(B.begin(), B.begin() + idx);
-			break;
+			if (B.size() == 0) return INFINITY;
+			idx = std::min((unsigned int)0, idx - 1);
 		}
 	}
 	for (unsigned int idx = 0; idx < Z.size(); idx++) {
-		//printf("%d / %d\r", idx, Z.size());
-		if (is_equal(Z.at(idx).date, start_date)) {
+		if (Z.at(idx).date <= start_date /*is_equal(tableb.at(idx).date, startdate)*/) {
 			Z.erase(Z.begin(), Z.begin() + idx);
-			break;
+			if (Z.size() == 0) return INFINITY;
+			idx = std::min((unsigned int)0, idx - 1);
 		}
 	}
-
 	// clip end date
 	for (unsigned int idx = 0; idx < A.size(); idx++) {
-		//printf("%d / %d\r", idx, A.size());
-		if (is_equal(A.at(idx).date, end_date)) {
-			if (idx + 1 >= A.size()) break;
-			A.erase(A.begin() + idx + 1, A.end());
-			break; 
+		if (A.at(idx).date >= end_date/*is_equal(tablea.at(idx).date, enddate)*/) {
+			//if (idx + 1 >= tablea.size()) break;
+			A.erase(A.begin() + idx, A.end());
+			if (A.size() == 0) return INFINITY;
+			break;
 		}
 	}
 	for (unsigned int idx = 0; idx < B.size(); idx++) {
-		//printf("%d / %d\r", idx, B.size());
-		if (is_equal(B.at(idx).date, end_date)) {
-			if (idx + 1 >= B.size()) break;
-			B.erase(B.begin() + idx + 1, B.end());
+		if (B.at(idx).date >= end_date/*is_equal(tableb.at(idx).date, enddate)*/) {
+			//if (idx + 1 >= tableb.size()) break;
+			B.erase(B.begin() + idx, B.end());
+			if (B.size() == 0) return INFINITY;
 			break;
 		}
 	}
 	for (unsigned int idx = 0; idx < Z.size(); idx++) {
-		//printf("%d / %d\r", idx, Z.size());
-		if (is_equal(Z.at(idx).date, end_date)) {
-			if (idx + 1 >= Z.size()) break;
-			Z.erase(Z.begin() + idx + 1, Z.end());
+		if (Z.at(idx).date >= end_date/*is_equal(tableb.at(idx).date, enddate)*/) {
+			//if (idx + 1 >= tableb.size()) break;
+			Z.erase(Z.begin() + idx, Z.end());
+			if (Z.size() == 0) return INFINITY;
 			break;
 		}
 	}
-	//printf("\n");
 
 	if (d) {
 		printf("A(%s -> %s) B(%s -> %s) Z(%s -> %s)\n",
@@ -272,13 +304,31 @@ double partial_correlate(std::vector<row_t> A, std::vector<row_t> B, std::vector
 	// data setup
 	if (A.size() != B.size() || B.size() != Z.size() || A.size() != Z.size()) {
 		printf("Size mismatch\n");
-		return INFINITY;
+		if (std::max(A.size(), std::max(B.size(), Z.size())) - std::min(A.size(), std::min(B.size(), Z.size())) <= 1) {
+			printf("continuing ...\n");
+			num = std::min(A.size(), std::min(B.size(), Z.size()));
+		}
+		else {
+			return INFINITY;
+		}
 	} else {
 		num = A.size();
 	}
 
+	//printf("p_c() -> A (%d) %s to %s \n", A.size(), date_toString(A.at(0).date).c_str(), date_toString(A.at(A.size() - 1).date).c_str());
+	//printf("p_c() -> B (%d) %s to %s \n", B.size(), date_toString(B.at(0).date).c_str(), date_toString(B.at(B.size() - 1).date).c_str());
+	//printf("p_c() -> Z (%d) %s to %s \n", Z.size(), date_toString(Z.at(0).date).c_str(), date_toString(Z.at(Z.size() - 1).date).c_str());
+
 	// step one & two & four: calculate sums
+	int nxx = 0;
 	for (int i = 0; i < num; i++) {
+		//printf("A: %f B: %f Z: %f\n", A[i].value.v, B[i].value.v, Z[i].value.v);
+		if (A.at(i).value.f || B.at(i).value.f || Z.at(i).value.f ||
+			isnan(A.at(i).value.v) || isnan(B.at(i).value.v) || isnan(Z.at(i).value.v)) {
+			printf("Skipped \n");
+			continue;
+		}
+
 		sum_a += A.at(i).value.v;
 		sum_b += B.at(i).value.v;
 		sum_z += Z.at(i).value.v;
@@ -290,8 +340,13 @@ double partial_correlate(std::vector<row_t> A, std::vector<row_t> B, std::vector
 		sum_ab += (A.at(i).value.v * B.at(i).value.v);
 		sum_bz += (B.at(i).value.v * Z.at(i).value.v);
 		sum_az += (A.at(i).value.v * Z.at(i).value.v);
+		//printf("EA=%f EB=%f EZ=%f \n", sum_a, sum_b, sum_z);
+		//printf("E(AA)=%f E(BB)=%f E(ZZ)=%f \n", sum_aa, sum_bb, sum_zz);
+		//printf("E(AB)=%f E(BZ)=%f E(AZ)=%f \n", sum_ab, sum_bz, sum_az);
+		nxx++;
 	}
 
+	printf("nxx: %d\n", nxx);
 	// step three : SS_Xs
 	double ss_a = sum_aa - (pow(sum_a, 2) / num);
 	double ss_b = sum_bb - (pow(sum_b, 2) / num);

@@ -1,4 +1,0 @@
-wavelet2d : wavelet math
-gnuplot : plotting
-fftw : fourier transforms
-gnuplot-iostream : c++ binding

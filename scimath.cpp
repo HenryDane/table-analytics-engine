@@ -76,3 +76,10 @@ double norm_ppf(double p) {
 		return rational_approximation(sqrt(-2.0*log(1 - p)));
 	}
 }
+
+/*
+	wavelet sources
+	http://www.jhuapl.edu/techdigest/views/pdfs/V15_N4_1994/V15_N4_1994_Sadowsky.pdf
+	https://people.cs.kuleuven.be/~adhemar.bultheel/WWW/WAVE/print4.pdf
+	https://en.wikipedia.org/wiki/Continuous_wavelet_transform
+*/
