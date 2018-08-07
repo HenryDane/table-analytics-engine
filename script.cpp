@@ -511,6 +511,18 @@ bool execute_token(std::ifstream &cfg,
 						mann_kendall_test(mkrt, ltable);
 						out << mkrt.trend << ",";
 					}
+					else if (tokens.at(4) == "tau") {
+						out << mann_kendall_tau(ltable) << ",";
+					}
+					else if (tokens.at(4) == "mtau") {
+						std::vector<row_t> atable;
+						for (int i = 0; i < table.size(); i++) {
+							if (table.at(i).variable == tokens.at(5)) {
+								atable.push_back(table.at(i));
+							}
+						}
+						out << mann_kendall_tau(ltable, atable) << ",";
+					}
 				}
 				else if (tokens.at(3) == "TS") {
 					if (tokens.at(4) == "Slope") {
@@ -611,7 +623,7 @@ bool execute_token(std::ifstream &cfg,
 					tkns = split(macros.at(idx).tokens.at(index), ':');
 					if (debug) printf("Executing token %s\n", macros.at(idx).tokens.at(index).c_str());
 					//execute_token(cfg, macros.at(idx).tokens.at(index), tkns, out, state, current_var, ltable, table, macros, cvars, periods, flags, macrovar, lists, agg_var);
-					execute_token(cfg, macros.at(idx).tokens.at(index), tkns, out, state, current_var, ltable, table, macros, cvars, periods, flags, macrovar, lists, agg_var, false);
+					execute_token(cfg, macros.at(idx).tokens.at(index), tkns, out, state, current_var, ltable, table, macros, cvars, periods, flags, macrovar, lists, agg_var, debug);
 				}
 			}
 		}
@@ -643,7 +655,7 @@ bool execute_token(std::ifstream &cfg,
 					tkns.clear();
 					tkns = split(macros.at(mindex).tokens.at(j), ':');
 					if (debug) printf("    Executing token %s\n", macros.at(mindex).tokens.at(j).c_str());
-					execute_token(cfg, macros.at(mindex).tokens.at(j), tkns, out, state, current_var, ltable, table, macros, cvars, periods, flags, macrovar, lists, agg_var, false);
+					execute_token(cfg, macros.at(mindex).tokens.at(j), tkns, out, state, current_var, ltable, table, macros, cvars, periods, flags, macrovar, lists, agg_var, debug);
 				}
 			}
 		}
@@ -701,9 +713,7 @@ void execute_script(std::string file, std::vector<row_t> table,
 	std::ifstream cfg;
 	std::ofstream out;
 	int state = 0;
-	bool f_underscore_is_space = false;
-	bool f_colors_ok = false;
-	bool f_auto_reset_filters = false;
+	script_flag_t flags;
 
 	// open the script
 	cfg.open("out.cfg");
@@ -729,13 +739,16 @@ void execute_script(std::string file, std::vector<row_t> table,
 	for (int i = 0; i < n_mode_opts; i++) {
 		cfg >> this_token;
 		if (this_token == "UNDERSCORE_IS_SPACE") {
-			f_underscore_is_space = true;
+			flags.f_underscore_is_space = true;
 		}
 		else if (this_token == "COLORS_OK") {
-			f_colors_ok = true;
+			flags.f_colors_ok = true;
 		}
 		else if (this_token == "AUTO_RESET_FILTERS") {
-			f_auto_reset_filters = true;
+			flags.f_auto_reset_filters = true;
+		}
+		else if (this_token == "DEBUG_ON") {
+			flags.f_debug = true;
 		}
 		else {
 			printf("found unknown option [%s]\n", this_token.c_str());
@@ -755,11 +768,6 @@ void execute_script(std::string file, std::vector<row_t> table,
 	std::vector<macro_t> macros;
 	std::vector<list_t> lists;
 
-	script_flag_t flags;
-	flags.f_auto_reset_filters = f_auto_reset_filters;
-	flags.f_colors_ok = f_colors_ok;
-	flags.f_underscore_is_space = f_underscore_is_space;
-
 	std::string macrovar = "__UNDEFINED__";
 
 	while (state >= 0) {
@@ -769,7 +777,7 @@ void execute_script(std::string file, std::vector<row_t> table,
 		tokens.clear();
 		tokens = split(this_token, ':');
 
-		execute_token(cfg, this_token, tokens, out, state, current_var, ltable, table, macros, cvars, periods, flags, macrovar, lists, agg_var, false);
+		execute_token(cfg, this_token, tokens, out, state, current_var, ltable, table, macros, cvars, periods, flags, macrovar, lists, agg_var, flags.f_debug);
 	}
 
 	out.close();

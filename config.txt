@@ -7,6 +7,9 @@ SALINITY 8 113.1-SAL 098.8-JER 088.4-ANH 092.9-EMM 102.2-RVB 081.8-CLL 052.6-MRZ
 * 1 GGT
 _3 3 GGT &0 &1
 GGT 1 !
+# SCRIPTS 2
+out.cfg
+out.cfg.old.3
 # STOP
 
 

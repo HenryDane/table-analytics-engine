@@ -80,6 +80,59 @@ void running_avg(std::vector<row_t> table, std::vector<double> &mov_avg, int win
 	delete[] numbers;
 }
 
+/* 
+	computes a running average "from the left" 
+	will do sum / 1, sum / 2, until it hits window size
+
+	untested
+
+	NAN intolerant
+*/
+void running_avg_left(std::vector<row_t> table, std::vector<double> &mov_avg, int windowSize) {
+	int NUMBERS_SIZE = table.size();
+
+	// allocated new array
+	double * numbers = new double[NUMBERS_SIZE];
+
+	// copy values to array
+	for (int i = 0; i < NUMBERS_SIZE; i++) {
+		numbers[i] = table.at(i).value.v;
+	}
+
+	// clean result
+	mov_avg.clear();
+
+	double sum = 0.0;
+	double movingAverage = 0.0;
+
+	// Loop through nums in list, excluding any at the end that will be covered by the nested for-loop.
+	for (int i = 0; i <= NUMBERS_SIZE; i++) {
+
+		sum = 0.0; // Reinitialize sum back to zero.
+				   //printf("For numbers "); // Output message.
+
+				   // Loop through x numbers from current i position, where x = windowSize.
+		/*for (int j = i; j < i + windowSize; j++) {*/
+		for (int j = std::max(0, i - windowSize); j < i; j++){
+			sum += numbers[j]; // Increment sum.
+							   //printf("%f ", numbers[j]);
+		}
+
+		// Calculate moving average and display.
+		if (i - windowSize == 0) {
+			movingAverage = sum / windowSize;
+		}
+		else {
+			movingAverage = sum / i;
+		}
+		//printf("\nMoving Avg: %f\n\n", movingAverage);
+		mov_avg.push_back(movingAverage);
+	}
+
+	// lawful good
+	delete[] numbers;
+}
+
 double coef_var(std::vector<row_t> table) {
 	return (std_dev(table) / mean(table));
 }
@@ -91,64 +144,9 @@ inline bool IsNaN(float A)
 
 double correlation(std::vector<row_t> tablea, std::vector<row_t> tableb, bool d) {
 
-	// resolve NAN
-	std::sort(tablea.begin(), tablea.end(), date_sort);
-	std::sort(tableb.begin(), tableb.end(), date_sort);
-
-	// delete rows which contain 1 or more null
-	strip_null(tablea, tableb);
-
-	std::sort(tablea.begin(), tablea.end(), date_sort);
-	std::sort(tableb.begin(), tableb.end(), date_sort);
-
-	if (d) {
-		printf("ORIGINAL: A(%s -> %s) B(%s -> %s)\n",
-			date_toString(tablea.at(0).date).c_str(), 
-			date_toString(tablea.at(tablea.size() - 1).date).c_str(),
-			date_toString(tableb.at(0).date).c_str(), 
-			date_toString(tableb.at(tableb.size() - 1).date).c_str());
-	}
-
-	date_t startdate = max_date(tablea.at(0).date, tableb.at(0).date);
-	date_t enddate = min_date(tablea.at(tablea.size() - 1).date, tableb.at(tableb.size() - 1).date);
-
-	// clip start date
-	for (unsigned int idx = 0; idx < tablea.size(); idx++) {
-		if (tablea.at(idx).date <= startdate /*is_equal(tablea.at(idx).date, startdate)*/) {
-			tablea.erase(tablea.begin(), tablea.begin() + idx);
-			if (tablea.size() == 0) return INFINITY;
-			idx = std::min((unsigned int) 0, idx - 1);
-		}
-	}
-	for (unsigned int idx = 0; idx < tableb.size(); idx++) {
-		if (tableb.at(idx).date <= startdate /*is_equal(tableb.at(idx).date, startdate)*/) {
-			tableb.erase(tableb.begin(), tableb.begin() + idx);
-			if (tableb.size() == 0) return INFINITY;
-			idx = std::min((unsigned int)0, idx - 1);
-		}
-	}
-	// clip end date
-	for (unsigned int idx = 0; idx < tablea.size(); idx++) {
-		if (tablea.at(idx).date >= enddate/*is_equal(tablea.at(idx).date, enddate)*/) {
-			//if (idx + 1 >= tablea.size()) break;
-			tablea.erase(tablea.begin() + idx, tablea.end());
-			if (tablea.size() == 0) return INFINITY;
-			break;
-		}
-	}
-	for (unsigned int idx = 0; idx < tableb.size(); idx++) {
-		if (tableb.at(idx).date >= enddate/*is_equal(tableb.at(idx).date, enddate)*/) {
-			//if (idx + 1 >= tableb.size()) break;
-			tableb.erase(tableb.begin() + idx, tableb.end());
-			if (tableb.size() == 0) return INFINITY;
-			break;
-		}
-	}
-
-	if (d) {
-		printf("FINAL: A(%s -> %s) B(%s -> %s)\n",
-			date_toString(tablea.at(0).date).c_str(), date_toString(tablea.at(tablea.size() - 1).date).c_str(),
-			date_toString(tableb.at(0).date).c_str(), date_toString(tableb.at(tableb.size() - 1).date).c_str());
+	double rcl = clip_date(tablea, tableb, d);
+	if (rcl != 0) {
+		return rcl;
 	}
 
 	if (tablea.size() != tableb.size()) {

@@ -29,6 +29,37 @@ struct date_t {
 	bool operator >=(const date_t& x) {
 		return std::tie(year, month, day, hours, minuites) >= std::tie(x.year, x.month, x.day, x.hours, x.minuites);
 	}
+
+	double numeric() {
+		int day_sum = 0;
+		for (int i = 1; i < this->month; i++) {
+			int days_month = 0;
+			if (i == 9 || i == 4 || i == 6 || i == 11) {
+				// sept/aprl/june/novm
+				days_month = 30;
+			}
+			else if (i == 2) {
+				if (abs((this->year - 1600)) % 4 == 0) {
+					// leap year
+					days_month = 29;
+				}
+				else {
+					days_month = 28;
+				}
+			}
+			else {
+				days_month = 31;
+			}
+
+			day_sum += days_month;
+		}
+
+		day_sum += this->year * 365;
+		day_sum += this->day;
+		day_sum += (this->hours / 24);
+		day_sum += (this->minuites / 60) / 24;
+		return day_sum;
+	}
 };
 
 struct s_double_t {
@@ -114,6 +145,9 @@ struct script_flag_t {
 	bool f_underscore_is_space = false;
 	bool f_colors_ok = false;
 	bool f_auto_reset_filters = false;
+	bool f_logic_ok = false;
+	bool f_overwrite_db = false;
+	bool f_debug = false;
 };
 
 struct list_t {
@@ -140,5 +174,5 @@ struct list_t {
 const std::string months[13] = { "N/A", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
 
 //int merge_duplicates_by_date(std::vector<row_t> &table);
-bool execute_config(std::vector<std::string> &variables, std::vector<variable_t> &rules, std::vector<custom_var_t> &cvars);
+bool execute_config(std::vector<std::string> &variables, std::vector<variable_t> &rules, std::vector<custom_var_t> &cvars, std::vector<std::string> &scripts);
 bool apply_rules(std::vector<std::string> &apply_to, std::vector<std::string> &rules_list, std::vector<std::string> &variables, std::vector<variable_t> &rules);

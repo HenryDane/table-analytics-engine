@@ -17,6 +17,7 @@ void aggregate_table(std::vector<row_t> &table, agg_t agg);
 void strip_null(std::vector<row_t> &tablea, std::vector<row_t> &tableb);
 void strip_null(std::vector<row_t> &a, std::vector<row_t> &b, std::vector<row_t> &c);
 void null_shield(std::vector<row_t> &table);
+double clip_date(std::vector<row_t> &tablea, std::vector<row_t> &tableb, bool d = false);
 
 // sort functions
 bool date_sort(row_t i, row_t j);

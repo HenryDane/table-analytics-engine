@@ -35,7 +35,7 @@ double max_table(std::vector<row_t> &table) {
 }
 
 // returns days since 00/00/0000 as integer with leap years
-int date_as_day(date_t date) {
+[[deprecated]] int date_as_day(date_t date) {
 	int day_sum = 0;
 	for (int i = 1; i < date.month; i++) {
 		int days_month = 0;
@@ -65,7 +65,8 @@ int date_as_day(date_t date) {
 date_t min_table_date(std::vector<row_t> &table) {
 	date_t date = { 9999, 99, 99, 99, 99 }; // YYYY MM DD
 	for (unsigned int i = 0; i < table.size(); i++) {
-		if (date_as_day(table.at(i).date) < date_as_day(date)) {
+		/*if (date_as_day(table.at(i).date) < date_as_day(date)) {*/
+		if (table.at(i).date.numeric() < date.numeric()){
 			date = table.at(i).date;
 		}
 	}
@@ -76,7 +77,8 @@ date_t min_table_date(std::vector<row_t> &table) {
 date_t max_table_date(std::vector<row_t> &table) {
 	date_t date = { 0000, 00, 00, 00, 00 }; // YYYY MM DD
 	for (unsigned int i = 0; i < table.size(); i++) {
-		if (date_as_day(table.at(i).date) > date_as_day(date)) {
+		/*if (date_as_day(table.at(i).date) > date_as_day(date)) {*/
+		if (table.at(i).date.numeric() > date.numeric()){
 			date = table.at(i).date;
 		}
 	}
@@ -696,4 +698,68 @@ s_double_t safe_add(s_double_t &a, s_double_t &b) {
 	}
 
 	return r;
+}
+
+double clip_date(std::vector<row_t> &tablea, std::vector<row_t> &tableb, bool d) {
+	// resolve NAN
+	std::sort(tablea.begin(), tablea.end(), date_sort);
+	std::sort(tableb.begin(), tableb.end(), date_sort);
+
+	// delete rows which contain 1 or more null
+	strip_null(tablea, tableb);
+
+	std::sort(tablea.begin(), tablea.end(), date_sort);
+	std::sort(tableb.begin(), tableb.end(), date_sort);
+
+	if (d) {
+		printf("ORIGINAL: A(%s -> %s) B(%s -> %s)\n",
+			date_toString(tablea.at(0).date).c_str(),
+			date_toString(tablea.at(tablea.size() - 1).date).c_str(),
+			date_toString(tableb.at(0).date).c_str(),
+			date_toString(tableb.at(tableb.size() - 1).date).c_str());
+	}
+
+	date_t startdate = max_date(tablea.at(0).date, tableb.at(0).date);
+	date_t enddate = min_date(tablea.at(tablea.size() - 1).date, tableb.at(tableb.size() - 1).date);
+
+	// clip start date
+	for (unsigned int idx = 0; idx < tablea.size(); idx++) {
+		if (tablea.at(idx).date <= startdate /*is_equal(tablea.at(idx).date, startdate)*/) {
+			tablea.erase(tablea.begin(), tablea.begin() + idx);
+			if (tablea.size() == 0) return INFINITY;
+			idx = std::min((unsigned int)0, idx - 1);
+		}
+	}
+	for (unsigned int idx = 0; idx < tableb.size(); idx++) {
+		if (tableb.at(idx).date <= startdate /*is_equal(tableb.at(idx).date, startdate)*/) {
+			tableb.erase(tableb.begin(), tableb.begin() + idx);
+			if (tableb.size() == 0) return INFINITY;
+			idx = std::min((unsigned int)0, idx - 1);
+		}
+	}
+	// clip end date
+	for (unsigned int idx = 0; idx < tablea.size(); idx++) {
+		if (tablea.at(idx).date >= enddate/*is_equal(tablea.at(idx).date, enddate)*/) {
+			//if (idx + 1 >= tablea.size()) break;
+			tablea.erase(tablea.begin() + idx, tablea.end());
+			if (tablea.size() == 0) return INFINITY;
+			break;
+		}
+	}
+	for (unsigned int idx = 0; idx < tableb.size(); idx++) {
+		if (tableb.at(idx).date >= enddate/*is_equal(tableb.at(idx).date, enddate)*/) {
+			//if (idx + 1 >= tableb.size()) break;
+			tableb.erase(tableb.begin() + idx, tableb.end());
+			if (tableb.size() == 0) return INFINITY;
+			break;
+		}
+	}
+
+	if (d) {
+		printf("FINAL: A(%s -> %s) B(%s -> %s)\n",
+			date_toString(tablea.at(0).date).c_str(), date_toString(tablea.at(tablea.size() - 1).date).c_str(),
+			date_toString(tableb.at(0).date).c_str(), date_toString(tableb.at(tableb.size() - 1).date).c_str());
+	}
+
+	return 0;
 }

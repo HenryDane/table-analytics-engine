@@ -2,6 +2,7 @@
 #include <sstream>
 #include <cmath>
 #include <iostream>
+#include <algorithm>
 #include "main.h"
 #include "mkt.h"
 #include "scimath.h"
@@ -109,4 +110,55 @@ void mann_kendall_test(mk_result_t &mkrt, std::vector<row_t> table, double alpha
 	mkrt.var_s = var_s;
 
 	return;
+}
+
+/*
+computes the mann-kendall rank correlation coefficient according to
+
+T = (2 / (n * (n - 1) ) ) * SIGMA where (i < j) of (sgn(x_i - x_j) * sgn(y_i - y_j))
+
+will not compare i to j ever
+
+returns a double between -1 and 1 except when an error occurrs, in which it will return INFINITY
+*/
+double mann_kendall_tau(std::vector<row_t> table) {
+	null_shield(table);
+	
+	int n = table.size();
+
+	//double a = (2 / (n * (n - 1)));
+	//printf("MKT /> %f %d\n", a, n);
+	double b = 0;
+
+	for (int i = 0; i < table.size(); i++) {
+		for (int j = i; j < table.size(); j++) {
+			double c = np_sign(table.at(i).value.v - table.at(j).value.v);
+			double d = np_sign(table.at(i).date.numeric() - table.at(j).date.numeric());
+			b += (c * d);
+		}
+	}
+	return (b / (n * (n - 1))) * 2;
+}
+
+double mann_kendall_tau(std::vector<row_t> tablea, std::vector<row_t> tableb) {
+	clip_date(tablea, tableb);
+
+	if (tablea.size() != tableb.size()) {
+		printf("Size diff! %d %d\n", tablea.size(), tableb.size());
+	}
+
+	int n = std::min(tablea.size(), tableb.size());
+
+	double b = 0.0;
+
+	for (int i = 0; i < n; i++) {
+		for (int j = i; j < n; j++) {
+			double c = np_sign(tablea.at(i).value.v - tablea.at(j).value.v);
+			double d = np_sign(tableb.at(i).value.v - tableb.at(j).value.v);
+
+			b += (c * d);
+		}
+	}
+
+	return (b / (n * (n - 1))) * 2;
 }

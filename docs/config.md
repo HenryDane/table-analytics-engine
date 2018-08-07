@@ -20,8 +20,9 @@ The first thing after the `# MODE` marker must be the number of settings.\
 `UNDERSCORE_IS_SPACE` replaces all underscores with spaces when writing.\
 `COLORS_OK` allows color code to be written (ignored if `XML_EXCEL` is not format code).\
 `AUTO_RESET_FILTERS` resets filters automatically.\
-`LOGIC_OK` signals that logic commands are to be used. Unless `OVERWRITE_DB_OK` is also present, this will result in a backup being created.\
-`OVERWRITE_DB_OK` signals that backups are not to be used, and that the database should be reopened in read-write mode.
+! `LOGIC_OK` signals that logic commands are to be used. Unless `OVERWRITE_DB_OK` is also present, this will result in a backup being created.\
+! `OVERWRITE_DB_OK` signals that backups are not to be used, and that the database should be reopened in read-write mode.\
+`DEBUG_ON` signals to print out debug information.
 
 ## Begin settings
 `CSV` declares that the output is a CSV file.\
@@ -120,6 +121,8 @@ Conditions are in the format `{EQ/LS/GR/NT}:{Var}:{DT/ID}:{Date/ID}:{Value}`. Th
 `VARS:{Var Name}:TESTS:MK:p` p component of MK test\
 `VARS:{Var Name}:TESTS:MK:h` h component of MK test\
 `VARS:{Var Name}:TESTS:MK:trend` trend result (string) of MK test\
+`VARS:{Var Name}:TESTS:MK:tau` computes the mann kendall tau of {Var Name}\
+`VARS:{Var Name}:TESTS:MK:mtau:{Other Var}` computes the mann kendall tau of {Var Name} and {Other Var}\
 `VARS:{Var Name}:TESTS:TS` (theil-sen test package)\
 `VARS:{Var Name}:TESTS:TS:Slope` returns the slope\
 `VARS:{Var Name}:TESTS:LINREG` (linear regression package)\

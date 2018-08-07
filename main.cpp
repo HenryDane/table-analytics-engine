@@ -46,7 +46,7 @@ int main() {
 	std::vector<custom_var_t> cvars;
 	char tmp[255];
 	int skipped = 0;
-	std::string __table_name__ = "newdb_08012018.csv";
+	std::string __table_name__ = "newdb_08012018.csv" /* "test_db.csv"*/;
 	int __table_suffix__ = rand() % 1000;
 
 	printf("Table Analytics Engine v2.1.5 \n");
@@ -215,8 +215,9 @@ int main() {
 #if F_AGG_YEARLY == 1
 
 #endif
-
-	execute_config(variables, rules, cvars);
+	
+	std::vector<std::string> scripts;
+	execute_config(variables, rules, cvars, scripts);
 	
 #if F_GEN_TS_ALL == 1
 	CreateDirectory(L".\\ts", NULL);
@@ -348,9 +349,12 @@ table_cleanup_begin:
 	variable_times_file.close();
 #endif 
 
-	printf("Executing script out.cfg\n");
+	printf("Executing scripts\n");
 
-	execute_script(std::string("out.cgf"), table, variables, rules, cvars);
+	for (int i = 0; i < scripts.size(); i++) {
+		printf("Executing %s ...\n", scripts.at(i).c_str());
+		execute_script(scripts.at(i), table, variables, rules, cvars);
+	}
 
 	return 635;
 
@@ -720,7 +724,11 @@ table_cleanup_begin:
 	return 0;
 }
 
-bool execute_config(std::vector<std::string> &variables, std::vector<variable_t> &rules, std::vector<custom_var_t> &cvars) {
+bool execute_config(std::vector<std::string> &variables, 
+		std::vector<variable_t> &rules, 
+		std::vector<custom_var_t> &cvars, 
+		std::vector<std::string> &scripts) {
+
 	std::ifstream cfg;
 	cfg.open("config.txt");
 
@@ -875,6 +883,19 @@ bool execute_config(std::vector<std::string> &variables, std::vector<variable_t>
 		}
 		//printf("\n");
 	}
+
+	cfg >> tmp >> tmp2;
+	if (tmp != "#" || tmp2 != "SCRIPTS") {
+		printf("bad script list [%s] [%s] \n", tmp.c_str(), tmp2.c_str());
+		return false;
+	}
+	int n_scripts = 0;
+	cfg >> n_scripts;
+	for (int i = 0; i < n_scripts; i++) {
+		cfg >> tmp;
+		scripts.push_back(tmp);
+	}
+	printf("Loaded %d scripts\n", scripts.size());
 
 	cfg.close();
 	return true;
