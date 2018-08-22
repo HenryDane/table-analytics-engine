@@ -20,12 +20,9 @@ Outputs:
 #include <vector> // because arrays are too hard
 #include <iostream> // files and std::cout
 #include <algorithm> // special functions for conversions and such
-
 #include <Windows.h> // for CreateDirectory
-
 #include <time.h> // for random
-#include <stdlib.h> // for random
-
+#include <stdlib.h> // for random ( and system() )
 #include "main.h"
 #include "mkt.h"
 #include "theilsen.h"
@@ -34,8 +31,12 @@ Outputs:
 #include "util.h"
 #include "script.h"
 #include "data.h"
+#include "scimath.h"
+#include "macros.h"
 
 agg_t global_min_agg = DAILY;
+
+//#include "Python.h"
 
 int main() {
 	std::vector<row_t> bad_rows;
@@ -46,7 +47,7 @@ int main() {
 	std::vector<custom_var_t> cvars;
 	char tmp[255];
 	int skipped = 0;
-	std::string __table_name__ = "newdb_08012018.csv" /* "test_db.csv"*/;
+	std::string __table_name__ = "_compile.stxt";
 	int __table_suffix__ = rand() % 1000;
 
 	printf("Table Analytics Engine v2.1.5 \n");
@@ -66,26 +67,13 @@ int main() {
 	printf("Resolved %d nulls\n", skipped);
 	data.close();
 
-	std::ofstream output;
-	output.open("results\\output.txt");
-	if (!output.is_open()) {
-		printf("failed to load output \n");
-		return -2;
-	}
-	for (unsigned int i = 0; i < table.size(); i++) {
-		printf("Writing row %d \r", i);
-		output << table.at(i).id << " ";
-		output << table.at(i).date.day << " " << table.at(i).date.month << " " << table.at(i).date.year << " ";
-		output << table.at(i).variable << " ";
-		output << table.at(i).value.v << std::endl;
-	}
-	output.close();
-
 	printf("Identifying variables \n");
 	for (unsigned int i = 0; i < table.size(); i++) {
 		printf("Reading row %d \r", i);
 
 		bool found = false;
+		if (i > table.size()) i = 0;
+
 		for (unsigned int j = 0; j < variables.size(); j++) {
 			if (variables.at(j) == table.at(i).variable) {
 				found = true;
@@ -110,9 +98,11 @@ int main() {
 	printf("Rebuilding table\n");
 	std::vector<row_t> table_fixed;
 	for (int i = 0; i < variables.size(); i++) {
+		//printf("loopstart\n");
 		std::vector<row_t> local_table;
 		std::vector<row_t> local_result_table;
 
+		//printf("efio\n");
 		for (int j = 0; j < table.size(); j++) {
 			printf("%d / %d [%d] \r", j + 1, table.size(), i + 1);
 			if (variables.at(i) == table.at(j).variable) {
@@ -121,6 +111,7 @@ int main() {
 			}
 		}
 
+		//printf("efji\n");
 		std::sort(table.begin(), table.end(), table_id_sort);
 		for (int d = 0; d < table.size(); d++) {
 			if (table.at(d).id > -50) {
@@ -132,6 +123,7 @@ int main() {
 		}
 
 		// fix state differences
+		//printf("yeet\n");
 		resolve_table_state(local_table);
 
 		if (global_min_agg == DAILY) {
@@ -141,7 +133,7 @@ int main() {
 
 				row_t r = local_table.at(j);
 				local_table.at(j).id = -100;
-				r.edits = 0;
+				r.edits = 1;
 
 				for (int k = 0; k < local_table.size(); k++) {
 					//printf("%d %d (%d / %d)\r", j + 1, k + 1, (j + 1) * (k + 1), local_table.size() * local_table.size());
@@ -152,7 +144,6 @@ int main() {
 						local_table.at(k).date.month == local_table.at(j).date.month &&
 						/*local_table.at(k).date.day == local_table.at(j).date.day &&*/
 						local_table.at(k).variable == local_table.at(j).variable) {
-						//r.value.v += local_table.at(k).value.v;
 						r.value = safe_add(r.value, local_table.at(k).value);
 						r.edits++;
 						local_table.at(k).id = -100;
@@ -166,15 +157,17 @@ int main() {
 			}
 		}
 
+		//printf("dgm\n");
 		degap_table_monthly(local_result_table);
-
+		//printf("fixin stuff %d\n", local_result_table.size());
 		// fix wierd date stuff
-		for (int n = 0; n < local_result_table.size(); n++) {
-			table.at(n).date.day = 1;
-			table.at(n).date.minuites = 0;
-			table.at(n).date.hours = 0;
+		for (unsigned int n = 0; n < local_result_table.size(); n++) {
+			local_result_table.at(n).date.day = 1;
+			local_result_table.at(n).date.minuites = 0;
+			local_result_table.at(n).date.hours = 0;
+			local_result_table.at(n).id++;
 		}
-
+		//printf("writin\n");
 		std::ofstream outtmp;
 		if (i == 0) {
 			outtmp.open(__table_name__ + "." + std::to_string(__table_suffix__), std::ios::trunc);
@@ -185,6 +178,7 @@ int main() {
 		if (!outtmp.is_open()) {
 			printf("err\n");
 		}
+		//printf("stuff2 %d \n", local_result_table.size());
 		for (int m = 0; m < local_result_table.size(); m++) {
 			//outtmp << local_result_table.at(m).id << " ";
 			outtmp << date_toString(local_result_table.at(m).date) << " ";
@@ -196,11 +190,14 @@ int main() {
 			outtmp << local_result_table.at(m).state << " ";
 			outtmp << std::endl;
 		}
+		outtmp.close();
+		
+		//gen_plot(local_result_table);
 
 		//table_fixed.reserve(table_fixed.size() + local_result_table.size());
 		//table_fixed.insert(table_fixed.begin(), local_result_table.begin(), local_result_table.end());
-
-}
+		//printf("loopend\n");
+	}
 
 	printf("\nOld size: %d\n", table.size());
 	table.clear();
@@ -218,7 +215,34 @@ int main() {
 	
 	std::vector<std::string> scripts;
 	execute_config(variables, rules, cvars, scripts);
-	
+	// gen cvar ts data
+	std::ofstream dataout;
+	dataout.open(__table_name__ + "." + std::to_string(__table_suffix__), std::ios::app);
+	for (int i = 0; i < cvars.size(); i++) {
+		std::vector<row_t> t;
+
+		filter_by_variable(table, t, cvars.at(i).pieces, cvars.at(i).name, true, true);
+
+		for (int j = 0; j < t.size(); j++) {
+			dataout << date_toString(t.at(j).date) << " ";
+			dataout << t.at(j).date.month << " ";
+			dataout << t.at(j).date.year << " ";
+			dataout << t.at(j).variable << " ";
+			dataout << t.at(j).value.v << " ";
+			dataout << t.at(j).units << " ";
+			dataout << t.at(j).state << " ";
+			dataout << std::endl;
+		}
+	}
+	dataout.close();
+
+	printf("\nOld size: %d\n", table.size());
+	table.clear();
+	data.open(__table_name__ + "." + std::to_string(__table_suffix__));
+	printf("Resolved %d nulls \n", read_db(data, table));
+	data.close();
+	printf("New size: %d\n", table.size());
+
 #if F_GEN_TS_ALL == 1
 	CreateDirectory(L".\\ts", NULL);
 	for (int i = 0; i < variables.size(); i++) {
@@ -251,6 +275,7 @@ int main() {
 		ofile.close();
 	}
 
+	
 	for (int i = 0; i < cvars.size(); i++) {
 		std::ofstream ofile;
 		std::string fname = "ts\\" + cvars.at(i).name + ".csv";
@@ -262,7 +287,7 @@ int main() {
 
 		std::vector<std::string> n = cvars.at(i).pieces;
 		std::vector<row_t> t;
-		filter_by_variable(table, t, n, true);
+		filter_by_variable(table, t, n, " ", true);
 
 		for (int j = 0; j < t.size(); j++) {
 			ofile << t.at(j).id << ",";
@@ -279,7 +304,7 @@ int main() {
 			}
 			ofile << t.at(j).units << std::endl;
 		}
-
+		
 		ofile.close();
 	}
 #endif
@@ -294,41 +319,30 @@ int main() {
 		return -563;
 	}
 	variable_times_file << "Num Vars:," << variables.size() << std::endl;
-	variable_times_file << "Variable, Start Date, End Date, No. Records" << std::endl;
+	variable_times_file << "Variable, Start Date, End Date, No. Records, Units" << std::endl;
+	//printf("vs: %d\n", variables.size());
 	for (int i = 0; i < variables.size(); i++) {
+		//printf("i: %d\n", i);
 		std::vector<row_t> vtable;
-		bool found = false;
-		int cvars_idx = 0;
-		for (; cvars_idx < cvars.size(); cvars_idx++) {
-			if (cvars.at(cvars_idx).name == variables.at(i)) {
-				found = true;
-				break;
-			}
-		}
+		//printf("f: %d\n", found);
 		
-		if (!found) {
-			for (int j = 0; j < table.size(); j++) {
-				if (table.at(j).variable == variables.at(i)) {
-					row_t r = table.at(j);
-					vtable.push_back(r);
-				}
+		for (int j = 0; j < table.size(); j++) {
+			if (table.at(j).variable == variables.at(i)) {
+				row_t r = table.at(j);
+				vtable.push_back(r);
 			}
 		}
-		else {
-			try {
-				filter_by_variable(table, vtable, cvars.at(cvars_idx).pieces, true);
-			}
-			catch (std::exception &e) {
-				printf("%s \n", e.what());
-			}
-		}
+
+		//printf("%d\n", vtable.size());
 
 		std::sort(vtable.begin(), vtable.end(), date_sort);
 		sdates.push_back(vtable.at(0).date);
 		edates.push_back(vtable.at(vtable.size() - 1).date);
 
-		variable_times_file << variables.at(i) << ", " << date_toString(vtable.at(0).date) << ", " << date_toString(vtable.at(vtable.size() - 1).date) << ", " << vtable.size() << std::endl;
+		variable_times_file << variables.at(i) << ", " << date_toString(vtable.at(0).date) << ", " << date_toString(vtable.at(vtable.size() - 1).date) << ", " << vtable.size() << "," << vtable.at(0).units << std::endl;
 	}
+
+	variable_times_file.close();
 
 
 	std::sort(sdates.begin(), sdates.end(), date_sort_dr);
@@ -353,373 +367,24 @@ table_cleanup_begin:
 
 	for (int i = 0; i < scripts.size(); i++) {
 		printf("Executing %s ...\n", scripts.at(i).c_str());
-		execute_script(scripts.at(i), table, variables, rules, cvars);
+		execute_script(scripts.at(i).c_str(), table, variables, rules, cvars);
 	}
 
-	return 635;
+	do_console(table, cvars, variables, rules);
 
-	printf("Beginning tests \n");
-	std::ofstream results;
-#if F_MAKE_CSV == 0
-	results.open("results.txt");
-	if (!results.is_open()) {
-		printf("Failed to open results.txt\n");
-		return -1;
-	}
+#if F_STOP_AT_SCRIPTS == 1
+	return 0;
 #endif
 
-	CreateDirectory(L".\\results", NULL);
-
-	time_t time_now;
-	time(&time_now);
-	struct tm* tm_info = localtime(&time_now);
-	strftime(tmp, 50, "%Y-%m-%d %H:%M:%S \n", tm_info);
-#if F_MAKE_CSV == 0
-	results << "TIME: " << tmp;
-	results << "DROPPED " << skipped << " RECORDS" << std::endl << std::endl;
-#endif
-
-	// analyze each variable
-	for (unsigned int i = 0; i < variables.size(); i++) {
-		std::vector<row_t> ggt;
-		for (unsigned int h = 0; h < table.size(); h++) {
-			if (table.at(h).variable == "GGT") {
-				row_t r = table.at(h);
-				ggt.push_back(r);
-			}
-		}
-#if F_MAKE_CSV == 1
-		results.open("results\\var_" + variables.at(i) + ".csv", std::ios::trunc);
-
-		if (!results.is_open()) {
-			std::string strtmp = "Failed to open results_" + variables.at(i) + ".txt\n";
-			printf(strtmp.c_str());
-			return -1;
-		}
-#endif
-		// assemble local variable table
-		std::vector<row_t> vtable;
-		bool found_cv = false;
-		for (unsigned int s = 0; s < cvars.size(); s++) {
-			//printf("CVAME: %s\n", cvars.at(s).name.c_str());
-			if (variables.at(i) == cvars.at(s).name) {
-				found_cv = true;
-				std::vector<std::string> names(cvars.at(s).pieces);
-				filter_by_variable(table, vtable, names, true);
-				break;
-			}
-		}
-		if (!found_cv)  {
-			for (unsigned int j = 0; j < table.size(); j++) {
-				if (table.at(j).variable == variables.at(i)) {
-					row_t row = table.at(j);
-					vtable.push_back(row);
-				}
-			}
-		}
-
-		sprintf(tmp, "(%d / %d) Var: [%s] . . .", vtable.size(), table.size(), variables.at(i).c_str());
-		//sprintf(tmp, "%d [%s] . . .", vtable.size(), variables.at(i).c_str());
-		printf(tmp);
-#if F_MAKE_CSV == 0
-		sprintf(tmp, "VAR %s, From %d/%d/%d to %d/%d/%d using %d records of %d records total\n", variables.at(i).c_str(), min_table_date(vtable).month, min_table_date(vtable).day, min_table_date(vtable).year, max_table_date(vtable).month, max_table_date(vtable).day, max_table_date(vtable).year, vtable.size(), table.size());
-		results << tmp;
-		sprintf(tmp, "DATE Z P SLOPE CL A B T GGT MEAN STDDEV CV\n");
-		results << tmp;
-#else
-		sprintf(tmp, "%s, From %d/%d/%d to %d/%d/%d,,,,,\n", variables.at(i).c_str(), min_table_date(vtable).month, min_table_date(vtable).day, min_table_date(vtable).year, max_table_date(vtable).month, max_table_date(vtable).day, max_table_date(vtable).year);
-		results << tmp;
-		sprintf(tmp, "DATE, Z, P, SLOPE, CL, A, B, T, GGT, MEAN, STDDEV, CV, MEDIAN\n");
-		results << tmp;
-#endif
-
-		//printf("reduced by %d", reduce_by_var(ggt, bad_rows, variables.at(i)));
-		mk_result_t mkrt;
-		mann_kendall_test(mkrt, vtable);
-		ts_result_t tsrt1;
-		theil_sen(tsrt1, vtable, 2); // 2 because monthly
-		linreg_result_t lrrt1;
-		linear_regression(lrrt1, vtable);
-		double ggt_v = correlation(vtable, ggt);
-
-#if F_MAKE_CSV == 0
-		sprintf(tmp, "Year %f %f %f[%s/mth] %f %f[%s/mth] %f[%s] %s %f %f %f %f %f\n", mkrt.z, mkrt.p, tsrt1.slope, vtable.at(0).units.c_str(), tsrt1.r_u - tsrt1.r_l, lrrt1.m, vtable.at(0).units.c_str(), lrrt1.b, vtable.at(0).units.c_str(), mkrt.trend.c_str(), ggt_v, mean(vtable), std_dev(vtable), coef_var(vtable), median(vtable));
-		results << tmp;
-#else 
-		sprintf(tmp, "Year, %f, %f, %f %s/mth, %f, %f %s/mth, %f %s, %s, %f, %f, %f, %f, %f\n", mkrt.z, mkrt.p, tsrt1.slope, vtable.at(0).units.c_str(), tsrt1.r_u - tsrt1.r_l, lrrt1.m, vtable.at(0).units.c_str(), lrrt1.b, vtable.at(0).units.c_str(), mkrt.trend.c_str(), ggt_v, mean(vtable), std_dev(vtable), coef_var(vtable), median(vtable));
-		results << tmp;
-#endif
-
-		// loop through months
-#if F_DO_MONTHS == 1
-		for (int j = 1; j <= 12; j++) {
-			std::vector<row_t> mtable;
-			for (unsigned int k = 0; k < vtable.size(); k++) {
-				if (vtable.at(k).date.month == j) {
-					row_t row = vtable.at(k);
-					mtable.push_back(row);
-				}
-			}
-
-			std::vector<row_t> ggt_m;
-			for (unsigned int k = 0; k < table.size(); k++) {
-				if (table.at(k).variable == "GGT" && table.at(k).date.month == j) {
-					row_t r = table.at(k);
-					ggt_m.push_back(r);
-				}
-			}
-			//printf("reduced by %d", reduce_by_var(ggt_m, bad_rows, variables.at(i)));
-
-			mk_result_t mkrt1;
-			mann_kendall_test(mkrt1, mtable);
-			ts_result_t tsrt;
-			theil_sen(tsrt, mtable);
-			linreg_result_t lrrt;
-			linear_regression(lrrt, mtable);
-			double ggt_v1 = correlation(mtable, ggt_m);
-
-#if F_MAKE_CSV == 0	
-			sprintf(tmp, "%s %f %f %f[%s/mth] %f %f[%s/mth] %f[%s] %s %f %f %f %f %f\n", months[j].c_str(), mkrt1.z, mkrt1.p, tsrt.slope, mtable.at(0).units.c_str(), tsrt.r_u - tsrt.r_l, lrrt.m, mtable.at(0).units.c_str(), lrrt.b, mtable.at(0).units.c_str(), mkrt.trend.c_str(), ggt_v1, mean(mtable), std_dev(mtable), coef_var(mtable), median(mtable));
-			results << tmp;
-#else 
-			sprintf(tmp, "%s, %f, %f, %f %s/yr, %f, %f %s/yr, %f %s, %s, %f, %f, %f, %f, %f\n", months[j].c_str(), mkrt1.z, mkrt1.p, tsrt.slope, mtable.at(0).units.c_str(), tsrt.r_u - tsrt.r_l, lrrt.m, mtable.at(0).units.c_str(), lrrt.b, mtable.at(0).units.c_str(), mkrt.trend.c_str(), ggt_v1, mean(mtable), std_dev(mtable), coef_var(mtable), median(mtable));
-			results << tmp;
-#endif
-			mtable.clear();
-		}
-
-		vtable.clear();
-
-#endif
-
-		results << std::endl;
-
-#if F_MAKE_CSV == 1
-		results.close();
-#endif
-
-		printf(" done\n");
-
-	}
-
-#if F_MAKE_CSV == 0
-	results.close();
-#endif
-	printf("Generating correlation data \n");
-	int cycle_num = 1;
-	std::ofstream correlate_data;
-	correlate_data.open("results\\correlate.csv", std::ios::trunc);
-
-	if (!correlate_data.is_open()) {
-		return -12;
-	}
-
-	correlate_data << "X, ";
-	for (unsigned int i = 0; i < variables.size(); i++) {
-		correlate_data << variables.at(i) << ", ";
-	}
-	correlate_data << std::endl;
-
-	for (unsigned int i = 0; i < variables.size(); i++) {
-#if F_DO_MONTHS == 1
-		printf("%d / %d\r", cycle_num, variables.size() + 12 * variables.size());
-#else 
-		printf("%d / %d\r", cycle_num, variables.size());
-#endif
-		correlate_data << variables.at(i) << ", ";
-		for (unsigned int j = 0; j < variables.size(); j++) {
-			std::vector<row_t> tablea;
-			std::vector<row_t> tableb;
-
-			// create tablea
-			bool found_i = false;
-			for (unsigned int l = 0; l < cvars.size(); l++) {
-				if (cvars.at(l).name == variables.at(i)) {
-					found_i = true;
-					std::vector<std::string> names(cvars.at(l).pieces);
-					filter_by_variable(table, tablea, names);
-					break;
-				}
-			}
-			if (!found_i) {
-				for (unsigned int l = 0; l < table.size(); l++) {
-					if (table.at(l).variable == variables.at(i)) {
-						row_t r = table.at(l);
-						tablea.push_back(r);
-					}
-				}
-			} 
-
-			// create tableb
-			bool found_j = false;
-			for (unsigned int l = 0; l < cvars.size(); l++) {
-				if (cvars.at(l).name == variables.at(j)) {
-					found_j = true;
-					std::vector<std::string> names(cvars.at(l).pieces);
-					filter_by_variable(table, tableb, names);
-					break;
-				}
-			}
-			if (!found_j) {
-				for (unsigned int l = 0; l < table.size(); l++) {
-					if (table.at(l).variable == variables.at(j)) {
-						row_t r = table.at(l);
-						tableb.push_back(r);
-					}
-				}
-			}
-
-			double c = correlation(tablea, tableb);
-
-			//printf("%d ", c);
-			correlate_data << c << ", ";
-		}
-		correlate_data << std::endl;
-		cycle_num++;
-	}
-	correlate_data.close();
-
-#if F_DO_MONTHS == 1
-	// months
-	for (int k = 1; k <= 12; k++) {
-		correlate_data.open("results\\correlate_" + months[k] + ".csv", std::ios::trunc);
-
-		if (!correlate_data.is_open()) {
-			return -k * 100;
-		}
-		//correlate_data << months[k] << std::endl;
-		std::vector<row_t> m_table;
-		for (unsigned int i = 0; i < table.size(); i++) {
-			if (table.at(i).date.month == k) {
-				row_t r = table.at(i);
-				m_table.push_back(r);
-			}
-		}
-
-		correlate_data << "[" << months[k] << "], ";
-		for (unsigned int i = 0; i < variables.size(); i++) {
-			correlate_data << variables.at(i) << ", ";
-		}
-		correlate_data << std::endl;
-
-		for (unsigned int i = 0; i < variables.size(); i++) {
-			correlate_data << variables.at(i) << ", ";
-			printf("%d / %d \r", cycle_num, variables.size() + 12 * variables.size());
-			for (unsigned int j = 0; j < variables.size(); j++) {
-				std::vector<row_t> tablea;
-				std::vector<row_t> tableb;
-
-				// create tablea
-				bool found_i = false;
-				for (unsigned int l = 0; l < cvars.size(); l++) {
-					if (cvars.at(l).name == variables.at(i)) {
-						found_i = true;
-						std::vector<std::string> names(cvars.at(l).pieces);
-						filter_by_variable(m_table, tablea, names);
-						break;
-					}
-				}
-				if (!found_i) {
-					for (unsigned int l = 0; l < m_table.size(); l++) {
-						if (m_table.at(l).variable == variables.at(i)) {
-							row_t r = m_table.at(l);
-							tablea.push_back(r);
-						}
-					}
-				}
-
-				// create tableb
-				bool found_j = false;
-				for (unsigned int l = 0; l < cvars.size(); l++) {
-					if (cvars.at(l).name == variables.at(j)) {
-						found_j = true;
-						std::vector<std::string> names(cvars.at(l).pieces);
-						filter_by_variable(m_table, tableb, names);
-						break;
-					}
-				}
-				if (!found_j) {
-					for (unsigned int l = 0; l < m_table.size(); l++) {
-						if (m_table.at(l).variable == variables.at(j)) {
-							row_t r = m_table.at(l);
-							tableb.push_back(r);
-						}
-					}
-				}
-
-				double c = correlation(tablea, tableb);
-
-				//printf("%d ", c);
-				correlate_data << c << ", ";
-			}
-			correlate_data << std::endl;
-			cycle_num++;
-		}
-		correlate_data << std::endl;
-		correlate_data.close();
-	}
-#endif
-	printf("\n");
-	std::vector<row_t> t_salinity;
-	std::vector<row_t> t_sac4;
-	std::vector<row_t> t_sjq4;
-	std::vector<row_t> t_sea_level;
-	
-	printf("cvars size %d\n", cvars.size());
-	for (unsigned int m = 0; m < cvars.size(); m++) {
-		printf("CV: %d %s %d : ", m, cvars.at(m).name.c_str(), cvars.at(m).pieces.size());
-		for (unsigned int zx = 0; zx < cvars.at(m).pieces.size(); zx++) {
-			printf("[%s] ", cvars.at(m).pieces.at(zx).c_str());
-		}
-		printf("\n");
-	}
-	for (unsigned int i = 0; i < table.size(); i++) {
-		//printf("[%d] %s ", i, table.at(i).variable.c_str());
-		if (table.at(i).variable == "GGT") {
-			row_t r = table.at(i);
-			t_sea_level.push_back(r);
-			//printf("GGT");
-		}
-		//printf("\n");
-	}
-	std::vector<std::string> namesa(cvars.at(0).pieces);
-	filter_by_variable(table, t_sac4, namesa);
-	std::vector<std::string> namesb(cvars.at(1).pieces);
-	filter_by_variable(table, t_sjq4, namesb);
-	std::vector<std::string> namesc(cvars.at(2).pieces);
-	filter_by_variable(table, t_salinity, namesc);
-
-	//printf("\n");
-	printf("%d %d %d \n", t_sac4.size(), t_sjq4.size(), t_salinity.size());
-	printf("Generating partial correlation table\n");
-	std::ofstream pcorfile;
-	pcorfile.open("results\\pcorfile.csv");
-	if (!pcorfile.is_open()) {
-		printf("could not open file \n");
-		return -963;
-	}
-	//printf("opened\n");
-	pcorfile << "X, SAC4_by_Sea_Level, SJQ4_by_Sea_Level, Sea_Level_by_SAC4, Sea_Level_by_SJQ4," << std::endl;
-	// SJQ4
-	for (int i = 0; i < cvars.at(2).pieces.size(); i++) {
-		printf("%d / %d \n", i + 1, cvars.at(2).pieces.size());
-		std::vector<row_t> salinity;
-		for (int j = 0; j < table.size(); j++) {
-			if (table.at(j).variable == cvars.at(2).pieces.at(i)) {
-				row_t r = table.at(j);
-				salinity.push_back(r);
-			}
-		}
-		sprintf(tmp, "%s, %f, %f, %f, %f\n",
-			cvars.at(2).pieces.at(i).c_str(),
-			partial_correlate(salinity, t_sac4, t_sea_level),
-			partial_correlate(salinity, t_sjq4, t_sea_level),
-			partial_correlate(salinity, t_sea_level, t_sac4),
-			partial_correlate(salinity, t_sea_level, t_sjq4));
-		pcorfile << tmp;
-	}
-	pcorfile.close();
-	printf("\n");
+	//execute_main_analysis(table, variables, cvars);
+	std::vector<period_t> periods;
+	period_t period = { "All", YEARLY,{ 0, 0, 0, 0, 0 },{ 9999, 99, 99, 99, 99 } }; periods.push_back(period);
+	//period = { "Pre_WP", YEARLY, { 0, 0, 0 }, { 1967, 9, 31 } }; periods.push_back(period);
+	period = { "Post_WP", YEARLY, { 1967, 10, 0 }, { 2017, 9, 31 } }; periods.push_back(period);
+	period = { "Pre_SMSCG", YEARLY, { 0, 0, 0 }, { 1987, 9, 31 } }; periods.push_back(period);
+	period = { "Post_SMSCG", YEARLY, { 1987, 10, 1 }, { 9999, 99, 99 } }; periods.push_back(period);
+	execute_main_full_analysis(table, variables, periods, cvars); 
+	execute_main_analysis_correlate(table, variables, cvars);
 
 	return 0;
 }

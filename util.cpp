@@ -7,6 +7,7 @@
 #include <fstream>
 #include <sstream>
 #include <windows.h>
+#include <iomanip>
 #include "main.h"
 
 bool is_inside(std::vector<std::string> vec, std::string str) {
@@ -87,39 +88,16 @@ date_t max_table_date(std::vector<row_t> &table) {
 }
 
 bool date_sort(row_t i, row_t j) {
-	if (date_as_day(i.date) < date_as_day(j.date)) {
+	/*if (date_as_day(i.date) < date_as_day(j.date)) {*/
+	if (i.date.numeric() < j.date.numeric()){
 		return true;
 	}
 	return false;
-	/*if (i.date.year < j.date.year) {
-		return true;
-	}
-	else if (i.date.year > j.date.year) {
-		return false;
-	}
-	else {
-		if (i.date.month < j.date.month) {
-			return true;
-		}
-		else if (i.date.month < j.date.month) {
-			return false;
-		}
-		else {
-			if (i.date.day < j.date.day) {
-				return true;
-			}
-			else if (i.date.day > j.date.day) {
-				return false;
-			}
-			else {
-				return true;
-			}
-		}
-	} */
 }
 
 bool date_sort_d(date_t i, date_t j) {
-	if (date_as_day(i) < date_as_day(j)) {
+	/*if (date_as_day(i) < date_as_day(j)) {*/
+	if (i.numeric() < j.numeric()) {
 		return true;
 	}
 	return false;
@@ -133,13 +111,19 @@ bool table_id_sort(row_t i, row_t j) {
 }
 
 bool date_sort_dr(date_t i, date_t j) {
-	if (date_as_day(i) > date_as_day(j)) {
+	/*if (date_as_day(i) > date_as_day(j)) {*/
+	if (i.numeric() > j.numeric()) {
 		return true;
 	}
 	return false;
 }
 
-void filter_by_variable(std::vector<row_t> table, std::vector<row_t> &otable, std::vector<std::string> varnames, bool merge) {
+void filter_by_variable(std::vector<row_t> table, 
+		std::vector<row_t> &otable, 
+		std::vector<std::string> varnames, 
+		std::string rename,
+		bool merge,
+		bool f_rename) {
 	std::vector<row_t> ltable;
 	otable.clear();
 
@@ -148,10 +132,15 @@ void filter_by_variable(std::vector<row_t> table, std::vector<row_t> &otable, st
 			if (table.at(i).variable == varnames.at(j)) {
 				//if (strstr(table.at(i).variable.c_str(), varnames.at(j).c_str())){
 				row_t row = table.at(i);
+
+				if (f_rename && !rename.empty()) row.variable = rename;
+
 				ltable.push_back(row);
 			}
 		}
 	}
+
+	//printf("collected %d records\n", ltable.size());
 
 	if (merge) {
 		for (unsigned int i = 0; i < ltable.size() - 1; i++) {
@@ -364,13 +353,14 @@ std::string date_toString(date_t &a) {
 	return std::string(tmp);
 }
 
-
 double date_as_month(date_t &date) {
-	return (date_as_day(date)) / DAYS_PER_TYP_MONTH;
+	//return (date_as_day(date)) / DAYS_PER_TYP_MONTH;
+	return date.numeric() / DAYS_PER_TYP_MONTH;
 }
 
 double date_as_year(date_t &date) {
-	return (date_as_day(date)) / 365;
+	//return (date_as_day(date)) / 365;
+	return date.numeric() / 365;
 }
 
 bool edit_sort(row_t i, row_t j) {
@@ -378,6 +368,17 @@ bool edit_sort(row_t i, row_t j) {
 		return true;
 	}
 	return false;
+}
+
+void print_table_c(std::vector<row_t> &t) {
+	for (int i = 0; i < t.size(); i++) {
+		printf("%s\n", t.at(i).toString().c_str());
+	}
+}
+
+void reflag_table(std::vector<row_t> &t) {
+	for (int i = 0; i < t.size(); i++)
+		t[i].value.f = t[i].value.f || isnan(t[i].value.v);
 }
 
 /*
@@ -446,7 +447,8 @@ void aggregate_table(std::vector<row_t> &table, agg_t agg) {
 }
 
 bool date_in_period(date_t d, period_t p) {
-	if (date_as_day(d) >= date_as_day(p.start) && date_as_day(d) <= date_as_day(p.end)) {
+	/*if (date_as_day(d) >= date_as_day(p.start) && date_as_day(d) <= date_as_day(p.end)) {*/
+	if (d.numeric() >= p.start.numeric() && d.numeric() <= p.end.numeric()) {
 		return true;
 	} else {
 		return false;
@@ -572,21 +574,21 @@ void strip_null(std::vector<row_t> &a, std::vector<row_t> &b, std::vector<row_t>
 			forbidden_dates.push_back(a[i].date);
 		}
 	}
-	printf("F.D.: %d\n", forbidden_dates.size());
+	//printf("F.D.: %d\n", forbidden_dates.size());
 	for (int i = 0; i < b.size(); i++) {
 		if (b[i].value.f || isnan(b[i].value.v)) {
 			b[i].id = -10;
 			forbidden_dates.push_back(b[i].date);
 		}
 	}
-	printf("F.D.: %d\n", forbidden_dates.size());
+	//printf("F.D.: %d\n", forbidden_dates.size());
 	for (int i = 0; i < c.size(); i++) {
 		if (c[i].value.f || isnan(c[i].value.v)) {
 			c[i].id = -10;
 			forbidden_dates.push_back(c[i].date);
 		}
 	}
-	printf("F.D.: %d\n", forbidden_dates.size());
+	//printf("F.D.: %d\n", forbidden_dates.size());
 
 	// read 
 	for (int i = 0; i < a.size(); i++) {
@@ -620,21 +622,21 @@ void strip_null(std::vector<row_t> &a, std::vector<row_t> &b, std::vector<row_t>
 	for (int i = 0; i < a.size(); i++) {
 		if (a[i].id > 0 && i > 0) {
 			a.erase(a.begin(), a.begin() + i - 1);
-			printf("A: %d\n", i);
+			//printf("A: %d\n", i);
 			break;
 		}
 	}
 	for (int i = 0; i < b.size(); i++) {
 		if (b[i].id > 0 && i > 0) {
 			b.erase(b.begin(), b.begin() + i - 1);
-			printf("B: %d\n", i);
+			//printf("B: %d\n", i);
 			break;
 		}
 	}
 	for (int i = 0; i < c.size(); i++) {
 		if (c[i].id > 0 && i > 0) {
 			c.erase(c.begin(), c.begin() + i - 1);
-			printf("C: %d\n", i);
+			//printf("C: %d\n", i);
 			break;
 		}
 	}
@@ -663,7 +665,6 @@ std::vector<std::string> split(const std::string& s, char delimiter)
 	}
 	return tokens;
 }
-
 
 void replaceAll(std::string& str, const std::string& from, const std::string& to) {
 	if (from.empty())
@@ -701,6 +702,7 @@ s_double_t safe_add(s_double_t &a, s_double_t &b) {
 }
 
 double clip_date(std::vector<row_t> &tablea, std::vector<row_t> &tableb, bool d) {
+	d = false;
 	// resolve NAN
 	std::sort(tablea.begin(), tablea.end(), date_sort);
 	std::sort(tableb.begin(), tableb.end(), date_sort);
@@ -763,3 +765,104 @@ double clip_date(std::vector<row_t> &tablea, std::vector<row_t> &tableb, bool d)
 
 	return 0;
 }
+
+void gen_plot(std::vector<row_t> t) {
+	int randint = rand() % 10000;
+
+	// generate tmp file
+	std::ofstream f;
+	f.open(t.at(0).variable + std::to_string(randint) + ".dat");
+	if (!f.is_open()) {
+		printf("could not open\n");
+		return;
+	}
+
+	// write tmp data
+	f << "# tmp_plot.dat" << std::endl;
+	for (int i = 0; i < t.size(); i++) {
+		if (!t[i].value.f) {
+			f << std::setprecision(std::numeric_limits<long double>::digits10);
+			f << t[i].date.toString() << " " << t[i].value.v << " " << std::endl;
+		}
+		else {
+			f << std::endl;
+		}
+	}
+	f << std::endl;
+	f.close();
+	
+	// generate tmp plot file
+	f.open(t.at(0).variable + std::to_string(randint) + ".plot");
+	if (!f.is_open()) {
+		printf("could not open\n");
+		return;
+	}
+
+	// write tmp plot file
+	f << "# set terminal svg size 1000 1000 dynamic" << std::endl;
+	f << "# set output '" << t.at(0).variable << std::to_string(randint) << ".svg'" << std::endl;
+	f << "set style line 1 \\" << std::endl;
+	f << "    linecolor rgb '#0060ad' \\" << std::endl;
+	f << "    linetype 1 linewidth 2 \\" << std::endl;
+	f << "    pointtype 7 pointsize .3" << std::endl;
+	f << std::endl;
+	f << "set xdata time" << std::endl;
+	f << "set timefmt '%m/%d/%Y %H:%M'" << std::endl;
+	f << "set format x '%m/%d/%Y %H:%M'" << std::endl;
+	f << "set xrange ['" << min_table_date(t).toString() << "':'" << max_table_date(t).toString() << "']" << std::endl;
+	f << std::endl;
+	f << "set title \"" << t.at(0).variable << "\"" << std::endl;
+	f << std::endl;
+	f << "plot '" << t.at(0).variable << std::to_string(randint) << ".dat' using 1:3 with linespoints linestyle 1" << std::endl;
+	//f << "pause -1 \"Press [Return] to continue\"" << std::endl;
+	f << "pause mouse" << std::endl;
+	f << std::endl;
+	f.close();
+
+	// call gnuplot
+	std::string p = std::string(GNUPLOT_PATH) + " " + t.at(0).variable + std::to_string(randint) + ".plot";
+	system(p.c_str());
+
+	// clean up files
+	std::string s = t.at(0).variable + std::to_string(randint) + ".plot";
+	remove(s.c_str());
+	s = t.at(0).variable + std::to_string(randint) + ".dat";
+	remove(s.c_str());
+}
+
+/*
+void build_custom_vars(std::vector<row_t> &t, std::vector<custom_var_t> cvars) {
+	std::vector<row_t> result;
+
+	for (custom_var_t cvt : cvars) {
+		std::vector<row_t> cvar_table; //holds unaggregated pieces
+
+		for (row_t r : t)
+			if (is_inside(cvt.pieces, r.variable))
+				cvar_table.push_back(r);
+
+
+		for (row_t r : cvar_table) {
+			r.variable = cvt.name;
+
+			if (r.id < 0) continue;
+
+			for (row_t s : cvar_table) {
+				if (s.id < 0) continue;
+
+				if (s.date == r.date) {
+					s.id = -100;
+					r.value = safe_add(r.value, s.value);
+					r.edits++;
+				}
+			}
+
+			r.value.v = r.value.v / r.edits;
+			result.push_back(r);
+		}
+		printf("SIZE -> %d\n", result.size());
+	}
+
+	for (row_t r : result)
+		t.push_back(r);
+}*/

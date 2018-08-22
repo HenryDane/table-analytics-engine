@@ -1,3 +1,4 @@
+#define _CRT_SECURE_NO_WARNINGS // so I can use sprintf
 #pragma once
 
 #include <string>
@@ -31,7 +32,9 @@ struct date_t {
 	}
 
 	double numeric() {
-		int day_sum = 0;
+		double day_sum = 0;
+		day_sum += (double)((double) hours / 24);
+		day_sum += (double)((double) minuites / 60) / 24;
 		for (int i = 1; i < this->month; i++) {
 			int days_month = 0;
 			if (i == 9 || i == 4 || i == 6 || i == 11) {
@@ -56,15 +59,21 @@ struct date_t {
 
 		day_sum += this->year * 365;
 		day_sum += this->day;
-		day_sum += (this->hours / 24);
-		day_sum += (this->minuites / 60) / 24;
+		
 		return day_sum;
+	}
+
+	std::string toString() {
+		char tmp[80];
+		sprintf(tmp, "%02d/%02d/%04d %02d:%02d", month, day, year, hours, minuites);
+		return std::string(tmp);
 	}
 };
 
 struct s_double_t {
 	double v;
-	bool f = false;
+	bool f = false; // nan flag (true = NAN)
+	bool i = false; // interpolate flag (true = interpolate)
 };
 
 struct row_t {
@@ -75,6 +84,12 @@ struct row_t {
 	std::string units;
 	int edits = 1;
 	int state = 0;
+
+	std::string toString() {
+		char tmp[160];
+		sprintf(tmp, "[%d] [%s] %s : %f (%s)", id, variable.c_str(), date.toString().c_str(), value.v, units.c_str());
+		return std::string(tmp);
+	}
 };
 
 struct mk_result_t {
@@ -132,6 +147,12 @@ struct period_t {
 	agg_t aggregation;
 	date_t start;
 	date_t end;
+
+	std::string toString() {
+		char tmp[160];
+		sprintf(tmp, "%s to %s", start.toString().c_str(), end.toString().c_str());
+		return std::string(tmp);
+	}
 };
 
 struct macro_t {
@@ -155,6 +176,11 @@ struct list_t {
 	std::vector<std::string> items;
 };
 
+struct quantile_t {
+	double h;
+	double l;
+};
+
 #define F_CORRECT_TIES 0
 #define F_MAKE_CSV 1 // leave at 1
 #define F_PRINT_VARS 1
@@ -164,12 +190,14 @@ struct list_t {
 #define F_DO_MONTHS 1
 #define F_AGG_YEARLY 0
 #define F_REBUILD_TABLE 1
+#define F_STOP_AT_SCRIPTS 0
 
 #define DAYS_PER_TYP_MONTH ((double) ((31 * 7) + (30 * 4) + 28.75) / 12)
-//#define UNITS "MAF"
 
-#define FIRST_DATE ((date_t){0, 0, 0})
-#define END_DATE ((date_t){9999, 99, 99})
+#define GNUPLOT_PATH "C:\\Users\\holling\\Downloads\\gnuplot-53pl0w64\\gnuplot\\bin\\gnuplot.exe"
+
+#define FIRST_DATE ((date_t){0, 0, 0, 0, 0})
+#define END_DATE ((date_t){9999, 99, 99, 99, 99})
 
 const std::string months[13] = { "N/A", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
 

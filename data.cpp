@@ -1,8 +1,203 @@
-#include <vector>
+﻿#include <vector>
 #include <fstream>
 #include <algorithm>
+#include <functional>
 #include "main.h"
+#include "scimath.h"
 #include "util.h"
+
+bool filter_bounds(std::vector<row_t> &table, double lbound, double ubound) {
+	for (int i = 0; i < table.size(); i++) {
+		if (table[i].value.v < lbound || table[i].value.v > ubound) {
+			table[i].value.v = NAN;
+			table[i].value.f = true;
+		}
+	}
+
+	return true;
+}
+
+bool filter_norepeats(std::vector<row_t> &table, unsigned int threshold) {
+	std::vector<double> a;
+	
+	// file list a with first threshold values of table
+	if (threshold >= table.size()) {
+		return true;
+	}
+	else {
+		// haha lal its actually zeroes
+		a.resize(threshold, 0);
+	}
+
+	// for each element in data
+	for (int i = 0; i < table.size(); i++) {
+		// drop first element of vector
+		a.erase(a.begin());
+
+		// add current element ot right of a
+		a.push_back(table[i].value.v);
+
+		// if all elements in a are equal
+		if (std::adjacent_find(a.begin(), a.end(), std::not_equal_to<double>()) == a.end()) {
+			
+			// find address of first element
+			int first_index = i - threshold;
+			if (first_index < 0) {
+				printf("its all hyucked\n");
+				return false;
+			}
+
+			// look for end of repeat section
+			while (table[i].value.v == a[0]) {
+				i++;
+			}
+
+			// overwrite values with NAN
+			for (int j = first_index; j < i; j++) {
+				table[i].value.v = NAN;
+				table[i].value.f = true;
+			}
+
+			a[threshold - 1] = table[i].value.v;
+		}
+	}
+}
+
+bool filter_med_outliers(std::vector<row_t> &table,
+		bool secfilt,
+		double level,
+		double scale,
+		int filter_len,
+		double lquantile,
+		double uquantile,
+		double seclevel,
+		double secscale,
+		int secfilt_len,
+		double seclquantile,
+		double secuquantile ) {
+	std::vector<row_t> filt;
+	std::vector<row_t> res;
+
+	if (filter_len % 2 == 0 ||
+		secfilt_len % 2 == 0) {
+		printf("filter lengths must be odd \n");
+		return false;
+	}
+
+	if (secfilt) {
+		filt = scipy_median_filter(table, secfilt_len);
+		res.resize(filt.size());
+
+		for (int i = 0; i < table.size(); i++) {
+			res[i] = table[i];
+			res[i].value.v = table[i].value.v - filt[i].value.v;
+		}
+
+		double iqr = NAN;
+
+		for (int k = 0; k < table.size(); k++) {
+			printf("%d / %d \r", k + 1, table.size());
+			if (isnan(secscale)) {
+				int slicelow = std::max(0, k - ((secfilt_len - 1) / 2));
+				int slicehigh = std::min((int) table.size(), k + ((secfilt_len - 1) / 2) + 1);
+
+				double * rwindow = new double[slicehigh - slicelow];
+
+				for (int m = slicelow; m < slicehigh; m++) {
+					rwindow[m - slicelow] = table[m].value.v;
+
+					quantile_t q = scimath_quantile(rwindow, slicehigh - slicelow, seclquantile, secuquantile);
+
+					iqr = q.h - q.l;
+				}
+			}
+			else {
+				iqr = secscale;
+			}
+
+			if (res[k].value.v > seclevel * iqr || res[k].value .v < - seclevel * iqr) {
+				table[k].value.v = NAN;
+				table[k].value.f = true;
+			}
+		}
+
+		printf("\n");
+	}
+
+	filt = scipy_median_filter(table, filter_len);
+	res.resize(filt.size());
+
+	for (int i = 0; i < table.size(); i++) {
+		res[i] = table[i];
+		res[i].value.v = table[i].value.v - filt[i].value.v;
+	}
+
+	double iqr = NAN;
+
+	for (int k = 0; k < table.size(); k++) {
+		printf("%d / %d \r", k + 1, table.size());
+		if (isnan(scale)) {
+			int slicelow = std::max(0, k - ((filter_len - 1) / 2));
+			int slicehigh = std::min((int)table.size(), k + ((filter_len - 1) / 2) + 1);
+
+			double * rwindow = new double[slicehigh - slicelow];
+
+			for (int m = slicelow; m < slicehigh; m++) {
+				rwindow[m - slicelow] = table[m].value.v;
+
+				quantile_t q = scimath_quantile(rwindow, slicehigh - slicelow, lquantile, uquantile);
+
+				iqr = q.h - q.l;
+			}
+		}
+		else {
+			iqr = scale;
+		}
+
+		if (res[k].value.v > level * iqr || res[k].value.v < -level * iqr) {
+			table[k].value.v = NAN;
+			table[k].value.f = true;
+		}
+	}
+}
+
+bool filter_delta_limit(std::vector<row_t> &table, double delta_limit) {
+	reflag_table(table);
+	
+	for (int i = 0; i < table.size(); i++) {
+		table[i].edits = 0;
+	}
+
+	for (int i = 0; i < table.size() - 1; i++) {
+		if (table[i].value.f || table[i + 1].value.f) continue;
+		double d = (table[i + 1].value.v - table[i].value.v) / (table[i + 1].date.numeric() - table[i].date.numeric());
+		//double d = table[i + 1].value.v - table[i].value.v;
+		if (abs(d) > delta_limit) {
+			printf("Removing (%f, %f) with DELTA=%f before point (%f, %f)\n",
+				table[i].date.numeric(), table[i].value.v,
+				d,
+				table[i + 1].date.numeric(), table[i + 1].value.v);
+			// TODO decide which (or both to flag by delta_next and delta_prev
+
+			table[i].edits = 10;
+			table[i + 1].edits = 10;
+			
+		}
+	}
+
+	for (int i = 0; i < table.size(); i++) {
+		if (table[i].edits > 0) {
+			table[i].value.v = NAN;
+			table[i].value.f = true;
+		}
+	}
+
+	return true;
+}
+
+bool clean_data(std::vector<row_t> &table) {
+	return true;
+}
 
 void resolve_table_state(std::vector<row_t> &table){
 	if (table[0].state == 65 ||
@@ -32,11 +227,15 @@ void resolve_table_state(std::vector<row_t> &table){
 					} else if (table[j].state == 0) {
 						table[i].id = -1000;
 					}
+					else {
+						table[i].id = -1000;
+					}
 				}
 			}
 		}
 	}
 	
+
 }
 
 int old_table_agg(std::vector<row_t> &table) {
@@ -142,7 +341,7 @@ bool degap_table_monthly(std::vector<row_t> &table) {
 			r_inj.units = table.at(i).units;
 
 			table.push_back(r_inj);
-			printf("intercepted one! %d [%d]  %d / %d\n", i, mth_diff, table.size(), expected_size);
+			//printf("intercepted one! %d [%d]  %d / %d\n", i, mth_diff, table.size(), expected_size);
 			//goto hyuckin_fix_loop;
 			std::sort(table.begin(), table.end(), date_sort);
 			i = std::max(0, i - 2);
@@ -187,25 +386,11 @@ int read_db(std::ifstream &data, std::vector<row_t> &table) {
 		if (!data.eof()) data >> units;
 		if (!data.eof()) data >> state;
 
-		// skip stuff we dont like
-		if (variable == "100.4-TSL" ||
-			variable == "092.8-BLP" ||
-			variable == "077.0-PTS" ||
-			variable == "075.0-MAL" ||
-			variable == "022.0-PSP" ||
-			variable == "ORI" ||
-			variable == "LPS" ) {
-			continue;
-		}
-
 		if (data.eof()) break;
-		//		std::cout << "DAT: [" << date << "][" << month << "][" << year << "][" << variable << "][" << value << "][" << units << "]" << std::endl;
 
 		row_t row;
 
 		row.date.month = std::stoi(std::string(date.c_str(), 2));
-		//row.date.month = -1;
-		//row.date.day = 1; // monthly data only
 		std::vector<std::string> date_components = split(date, '/');
 		row.date.day = std::stoi(date_components.at(1));
 		row.date.year = std::stoi(year);
@@ -216,7 +401,7 @@ int read_db(std::ifstream &data, std::vector<row_t> &table) {
 		row.units = units;
 		row.state = std::stoi(state);
 
-		if (value.c_str()[0] != 'N' && value.c_str()[1] != '-') {
+		if (value.c_str()[0] != 'N' && value.c_str()[1] != '-' && value.c_str()[0] != 'm') {
 			row.value.v = std::stod(value);
 		}
 		else {

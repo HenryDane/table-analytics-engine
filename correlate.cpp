@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <cmath>
 #include <fstream>
+#include <iostream>
 #include "util.h"
 #include "main.h"
 #include "theilsen.h"
@@ -14,8 +15,23 @@
 double median(std::vector<row_t> table) {
 	null_shield(table);
 	std::sort(table.begin(), table.end(), table_value_sort);
+	//printf("\n\n");
+	//print_table_c(table);
+	//printf("\n\n");
 	//printf("median() -> start: %f middle: %f, end: %f", table.at(0).value.v, table.at((table.size() / 2)).value.v, table.at(table.size() - 1).value.v);
-	return table.at(table.size() / 2).value.v;
+	if (table.size() % 2) {
+		return table.at((table.size() - 1) / 2).value.v; // odd
+	}
+	else {
+		try {
+			return (table.at((table.size() / 2) - 1).value.v + table.at(table.size() / 2).value.v) / 2; //even
+		}
+		catch (std::exception &e) {
+			//std::cout << e.what() << std::endl;
+			//std::cout << table.size() << std::endl;
+			return NAN;
+		}
+	}
 }
 
 double mean(std::vector<row_t> table) {
@@ -143,7 +159,10 @@ inline bool IsNaN(float A)
 }
 
 double correlation(std::vector<row_t> tablea, std::vector<row_t> tableb, bool d) {
-
+	if (std::min(tablea.size(), tableb.size()) == 0) {
+		printf("one of the tables is zero size!\n");
+		return INFINITY;
+	}
 	double rcl = clip_date(tablea, tableb, d);
 	if (rcl != 0) {
 		return rcl;
@@ -155,8 +174,6 @@ double correlation(std::vector<row_t> tablea, std::vector<row_t> tableb, bool d)
 		}
 		if (d) printf("wrong size! %d %d\n", tablea.size(), tableb.size());
 		if (d) printf("CRASHING! \n");
-		/*abort();
-		return INFINITY;*/
 	}
 
 	double sum_a = 0;
@@ -165,17 +182,17 @@ double correlation(std::vector<row_t> tablea, std::vector<row_t> tableb, bool d)
 	double sumsq_a = 0;
 	double sumsq_b = 0;
 
-	//printf("%d == %d\n", a.size(), b.size());
-
 	int n = std::min(tablea.size(), tableb.size());
-	if (n == 0 || n == 1) {
+	if (n == 0) {
 		return INFINITY;
 	}
-
+	
+	int s = 0;
 	for (int i = 0; i < n; i++){
 		if (tablea.at(i).value.f || tableb.at(i).value.f ||
 			isnan(tablea.at(i).value.v) || isnan(tableb.at(i).value.v)) {
-			if (d) printf("I FOUND A NULL!\n");
+			//if (d) printf("I FOUND A NULL!\n");
+			s++;
 			continue;
 		}
 		// sum of elements of array A.
@@ -192,6 +209,12 @@ double correlation(std::vector<row_t> tablea, std::vector<row_t> tableb, bool d)
 		sumsq_b += tableb.at(i).value.v * tableb.at(i).value.v;
 	}
 
+	n -= s; // correct for skipped
+
+	if (n == 0) {
+		return INFINITY;
+	}
+
 	sum_a = sum_a / n;
 	sum_b = sum_b / n;
 	sumsq_a = sumsq_a / n;
@@ -205,8 +228,8 @@ double correlation(std::vector<row_t> tablea, std::vector<row_t> tableb, bool d)
 
 // from https://www.youtube.com/watch?v=3jr_vbxajcs
 double partial_correlate(std::vector<row_t> A, std::vector<row_t> B, std::vector<row_t> Z, bool d) {
-	d = true;
-	printf(">>> %d %d %d\n", A.size(), B.size(), Z.size());
+	//d = true;
+	if (d) printf(">>> %d %d %d\n", A.size(), B.size(), Z.size());
 	strip_null(A, B, Z);
 	int num = -1;
 
@@ -224,7 +247,7 @@ double partial_correlate(std::vector<row_t> A, std::vector<row_t> B, std::vector
 	double sum_zz = 0;
 
 	// fastish filter
-	printf("sorting %d %d %d\n", A.size(), B.size(), Z.size());
+	if (d) printf("sorting %d %d %d\n", A.size(), B.size(), Z.size());
 	std::sort(A.begin(), A.end(), date_sort);
 	std::sort(B.begin(), B.end(), date_sort);
 	std::sort(Z.begin(), Z.end(), date_sort);
@@ -297,13 +320,14 @@ double partial_correlate(std::vector<row_t> A, std::vector<row_t> B, std::vector
 			date_toString(A.at(0).date).c_str(), date_toString(A.at(A.size() - 1).date).c_str(),
 			date_toString(B.at(0).date).c_str(), date_toString(B.at(B.size() - 1).date).c_str(),
 			date_toString(Z.at(0).date).c_str(), date_toString(Z.at(Z.size() - 1).date).c_str());
+		printf("%d %d %d\n", A.size(), B.size(), Z.size());
 	}
 
 	// data setup
 	if (A.size() != B.size() || B.size() != Z.size() || A.size() != Z.size()) {
-		printf("Size mismatch\n");
+		if (d) printf("Size mismatch\n");
 		if (std::max(A.size(), std::max(B.size(), Z.size())) - std::min(A.size(), std::min(B.size(), Z.size())) <= 1) {
-			printf("continuing ...\n");
+			if (d) printf("continuing ...\n");
 			num = std::min(A.size(), std::min(B.size(), Z.size()));
 		}
 		else {
@@ -323,7 +347,7 @@ double partial_correlate(std::vector<row_t> A, std::vector<row_t> B, std::vector
 		//printf("A: %f B: %f Z: %f\n", A[i].value.v, B[i].value.v, Z[i].value.v);
 		if (A.at(i).value.f || B.at(i).value.f || Z.at(i).value.f ||
 			isnan(A.at(i).value.v) || isnan(B.at(i).value.v) || isnan(Z.at(i).value.v)) {
-			printf("Skipped \n");
+			if (d) printf("Skipped \n");
 			continue;
 		}
 
@@ -344,7 +368,7 @@ double partial_correlate(std::vector<row_t> A, std::vector<row_t> B, std::vector
 		nxx++;
 	}
 
-	printf("nxx: %d\n", nxx);
+	if (d) printf("nxx: %d\n", nxx);
 	// step three : SS_Xs
 	double ss_a = sum_aa - (pow(sum_a, 2) / num);
 	double ss_b = sum_bb - (pow(sum_b, 2) / num);

@@ -15,8 +15,8 @@ void mann_kendall_test(mk_result_t &mkrt, std::vector<row_t> table, double alpha
 
 	// calculate S
 	int s = 0;
-	for (int k = 0; k < n - 1; k++) {
-		for (int j = k + 1; j < n; j++) {
+	for (unsigned int k = 0; k < n - 1; k++) {
+		for (unsigned int j = k + 1; j < n; j++) {
 			s += np_sign(table.at(j).value.v - table.at(k).value.v);
 		}
 	}

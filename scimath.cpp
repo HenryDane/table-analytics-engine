@@ -1,6 +1,102 @@
 #include <vector>
 #include <sstream>
+#include <algorithm>
 #include "main.h"
+#include "correlate.h"
+#include "util.h"
+
+quantile_t scimath_quantile(std::vector<row_t> &t, double lbound, double ubound) {
+	quantile_t q;
+
+	std::sort(t.begin(), t.end(), table_value_sort);
+
+	int n = t.size();
+
+	if (n <= 1) {
+		return { NAN, NAN };
+	}
+
+	double lq = lbound * n;
+	double uq = ubound * n;
+
+	if (floor(lq) == lq) {
+		q.l = t[lq - 1].value.v;
+	}
+	else {
+		q.l = (t[floor(lq) - 1].value.v + t[floor(lq)].value.v) / 2;
+	}
+
+	if (floor(uq) == uq) {
+		q.h = t[uq - 1].value.v;
+	}
+	else {
+		q.h = (t[floor(uq) - 1].value.v + t[floor(uq)].value.v) / 2;
+	}
+
+	return q;
+}
+
+quantile_t scimath_quantile(double * t, int n, double lbound, double ubound) {
+	quantile_t q;
+
+	std::sort(t, t + n);
+
+	if (n <= 1) {
+		return{ NAN, NAN };
+	}
+
+	double lq = lbound * n;
+	double uq = ubound * n;
+
+	if (floor(lq) == lq) {
+		q.l = t[(int) lq - 1];
+	}
+	else {
+		q.l = (t[(int) floor(lq) - 1] + t[(int) floor(lq)]) / 2;
+	}
+
+	if (floor(uq) == uq) {
+		q.h = t[(int) uq - 1];
+	}
+	else {
+		q.h = (t[(int) floor(uq) - 1] + t[(int) floor(uq)]) / 2;
+	}
+
+	return q;
+}
+
+std::vector<row_t> scipy_median_filter(std::vector<row_t> &t, int window) {
+	//null_shield(t);
+	std::vector<row_t> b;
+
+	for (int i = 0; i < t.size(); i++) {
+		std::vector<row_t> a;
+		int n = t.size();
+		//printf("smf %d / %d \r", i + 1, n);
+		for (int j = i - window; j <= i + window; j++) {
+			try {
+				a.push_back(t.at(j));
+			}
+			catch (std::exception &e) {	}
+		}
+
+		if (a.size() == 0) continue;
+
+		row_t r = t[i];
+		if (a.size() == 0) {
+			r.value.v = NAN;
+			r.value.f = true;
+		}
+		else {
+			r.value.v = median(a);
+			r.value.f = isnan(r.value.v);
+		}
+
+		b.push_back(r);
+	}
+
+	return b;
+}
 
 int np_sign(double x) {
 	return (x < 0) ? -1 : ((x == 0) ? 0 : 1);

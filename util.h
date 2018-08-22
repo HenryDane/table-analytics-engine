@@ -7,10 +7,11 @@
 bool startsWith(std::string mainStr, std::string toMatch);
 void replaceAll(std::string& str, const std::string& from, const std::string& to);
 std::vector<std::string> split(const std::string& s, char delimiter);
+void print_table_c(std::vector<row_t> &t);
 
 // table functions
 bool is_inside(std::vector<std::string> vec, std::string str);
-void filter_by_variable(std::vector<row_t> table, std::vector<row_t> &otable, std::vector<std::string> varnames, bool merge = true);
+void filter_by_variable(std::vector<row_t> table, std::vector<row_t> &otable, std::vector<std::string> varnames, std::string rename = "__renamed__", bool merge = true, bool f_rename = false);
 int reduce_by_var(std::vector<row_t> table, std::vector<row_t> bad_rows, std::string varname);
 void make_unique(std::vector<std::string> &vec);
 void aggregate_table(std::vector<row_t> &table, agg_t agg);
@@ -18,6 +19,9 @@ void strip_null(std::vector<row_t> &tablea, std::vector<row_t> &tableb);
 void strip_null(std::vector<row_t> &a, std::vector<row_t> &b, std::vector<row_t> &c);
 void null_shield(std::vector<row_t> &table);
 double clip_date(std::vector<row_t> &tablea, std::vector<row_t> &tableb, bool d = false);
+void reflag_table(std::vector<row_t> &t);
+void gen_plot(std::vector<row_t> t);
+//void build_custom_vars(std::vector<row_t> &t, std::vector<custom_var_t> cvars);
 
 // sort functions
 bool date_sort(row_t i, row_t j);

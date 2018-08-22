@@ -8,7 +8,7 @@ void execute_script(std::string file, std::vector<row_t> table,
 	std::vector<variable_t> rules,
 	std::vector<custom_var_t> cvars);
 
-bool execute_token(std::ifstream &cfg,
+bool execute_token(std::istream &cfg,
 	std::string &this_token,
 	std::vector<std::string> &tokens,
 	std::ofstream &out,
@@ -25,4 +25,10 @@ bool execute_token(std::ifstream &cfg,
 	std::string &agg_var,
 	bool debug = false);
 
+void do_console(std::vector<row_t> table, std::vector<custom_var_t> cvars, std::vector<std::string> variables, std::vector<variable_t> rules);
+
+bool eval_condition(std::string condition_token, std::vector<row_t> table);
+
 void yearly_agg(std::vector<row_t> &tbl);
+
+list_t get_list_by_name(std::vector<list_t> l, std::string n);
