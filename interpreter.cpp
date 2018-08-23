@@ -1,6 +1,7 @@
 #include <vector>
 #include <string>
 #include "main.h"
+#include "macros.h"
 #include "util.h"
 
 bool imb_init(interpreter_memblock_t &imb) {
@@ -152,40 +153,307 @@ bool imb_set_period(interpreter_memblock_t &imb, period_t p) {
 	return imb_build_agg_table(imb, imb.active_aggregation);
 }
 
-bool imb_enumerate_token(interpreter_memblock_t &imb, std::string token) {
+token_t imb_enumerate_token(interpreter_memblock_t &imb, std::string token) {
 	std::vector<std::string> tokens = split(token, ':');
 	std::string top = tokens.at(0);
-	
-	if (top == "SETAGG") {
 
+	token_enum_t tet = EMPTY;
+
+	if (top == "SETAGG") {
+		tet = SETAGG;
 	}
 	else if (top == "SETPER") {
-		
+		tet = SETPER;
 	}
 	else if (top == "SETVAR") {
-
+		tet = SETVAR;
 	}
 	else if (top == "SETMVR") {
-
+		tet = SETMVR;
 	}
 	else if (top == "SETFILE") {
-
+		tet = SETFILE;
 	}
 	else if (top == "MKDB") {
-
+		tet = MKDB;
 	}
 	else if (top == "DELDB") {
-
+		tet = DELDB;
 	}
 	else if (top == "COPYDB") {
-
+		tet = COPYDB;
 	}
+	else if (top == "LOOPDB") {
+		tet = __ERROR__;
+	}
+	else if (top == "WRITEDB") {
+		tet = __ERROR__;
+	}
+	else if (top == "READDB") {
+		tet = __ERROR__;
+	}
+
+	else if (top == "PUSH") {
+		tet = PUSH;
+	}
+	else if (top == "POP") {
+		tet = POP;
+	}
+	else if (top == "SWAP") {
+		tet = SWAP;
+	}
+	else if (top == "SIFT") {
+		tet = SIFT;
+	}
+	else if (top == "__STACKWIPE") {
+		tet = __STACKWIPE;
+	}
+
+	else if (top == "MACRO") {
+		tet = MACRO;
+	}
+	else if (top == "MACROF") {
+		tet = MACROF;
+	}
+	else if (top == "MACROS") {
+		tet = MACROS;
+	}
+	else if (top == "EXECUTE") {
+		tet = EXECUTE;
+	}
+	else if (top == "MACROLOOP") {
+		tet = MACROLOOP;
+	}
+	else if (top == "MACROTABLE") {
+		tet = MACROTABLE;
+	}
+
+	else if (top == "FIRSTDATE") {
+		tet = FIRSTDATE;
+	}
+	else if (top == "LASTDATE") {
+		tet = LASTDATE;
+	}
+	else if (top == "MEAN" || top == "AVERAGE") {
+		tet = MEAN;
+	}
+	else if (top == "MEDIAN") {
+		tet = MEDIAN;
+	}
+	else if (top == "STDDEV" || top == "STDEV") {
+		tet = STDDEV;
+	}
+	else if (top == "CV" || top == "COEFV" || top == "COEFVAR") {
+		tet = COEFVAR;
+	}
+
+	else if (top == "MKP" || top == "MANNKENDALLP") {
+		tet = MANNKENDALLP;
+	}
+	else if (top == "MKZ" || top == "MANNKENDALLZ") {
+		tet = MANNKENDALLZ;
+	}
+	else if (top == "MKH" || top == "MANNKENDALLH") {
+		tet = MANNKENDALLH;
+	}
+	else if (top == "MKT" || top == "MANNKENDALLT") {
+		tet = MANNKENDALLT;
+	}
+	else if (top == "MKTAU" || top == "MANNKENDALLTAU") {
+		tet = MANNKENDALLTAU;
+	}
+
+	else if (top == "TSS" || top == "THEILSENSLOPE") {
+		tet = THEILSENSLOPE;
+	}
+
+	else if (top == "LINEARREGRESSIONA" || top == "LINRA") {
+		tet = LINRA;
+	}
+	else if (top == "LINEARREGRESSIONB" || top == "LINRB") {
+		tet = LINRB;
+	}
+	else if (top == "LINEARREGRESSIONR" || top == "LINRR") {
+		tet = LINRR;
+	}
+	else if (top == "POLYREG") {
+		tet = POLYREG;
+	}
+	else if (top == "EXPREG") {
+		tet = EXPREG;
+	}
+
+	else if (top == "MIN") {
+		tet = MIN;
+	}
+	else if (top == "MAX") {
+		tet = MAX;
+	}
+	else if (top == "RANGE") {
+		tet = RANGE;
+	}
+	else if (top == "IQR") {
+		tet = IQR;
+	}
+	else if (top == "PERCENTILE") {
+		tet = PERCENTILE;
+	}
+	else if (top == "RPERCENTILE") {
+		tet = RPERCENTILE;
+	}
+
+	else if (top == "CORR") {
+		tet = CORR;
+	}
+	else if (top == "PCORR") {
+		tet = PCORR;
+	}
+
+	else if (top == "LINT") {
+		tet = LINT;
+	}
+	else if (top == "POLYINT") {
+		tet = POLYINT;
+	}
+	else if (top == "NEARINT") {
+		tet = NEARINT;
+	}
+
+	else if (top == "OCLIP") {
+		tet = OCLIP;
+	}
+	else if (top == "NORMALIZE") {
+		tet = NORMALIZE;
+	}
+
+	else if (top == "__LEGACY_INT") {
+		tet = __LEGACY_INT;
+	}
+	else if (top == "__LEGACY_EXECUTE_TOKEN") {
+		tet = __LEGACY_EXECUTE_TOKEN;
+	}
+	else if (top == "__LEGACY_EXECUTE_SCRIPT") {
+		tet = __LEGACY_EXECUTE_SCRIPT;
+	}
+	else if (top == "__PROTECTED_DIRECT_EXECUTE") {
+		tet = __ERROR__;
+	}
+	else if (top == "__PROTECTED_MODIFY_TOKEN") {
+		tet = __ERROR__;
+	}
+	else if (top == "__PROTECTED_DELETE_DIR") {
+		tet = __ERROR__;
+	}
+	else if (top == "__PROTECTED_REBUILD_TOKENLIST") {
+		tet = __ERROR__;
+	}
+	else {
+		printf("Error while enumerating token [%s]: Token not recognized\n");
+	}
+
+	if (tet == __ERROR__) printf("Error while enumerating token [%s]: Forward-defined tokens are not useable\n");
+
+	token_t t;
+	t.token = tet;
+	t.associated = tokens;
+
+	return t;
 }
 
-bool imb_enumerate_file(interpreter_memblock_t &imb, std::ifstream &i) {
+bool imb_enumerate_file(interpreter_memblock_t &imb, std::ifstream &i, std::vector<token_t> &tokens) {
+	if (!i.is_open()) {
+		printf("Failed to open file for enumeration\n");
+		return false;
+	}
 
+	while (1) {
+		std::string s;
+		if (!i.eof()) {
+			i >> s;
+			tokens.push_back(imb_enumerate_token(imb, s));
+		}
+		else {
+			break;
+		}
+	}
+
+	return true;
 }
 
 bool imb_execute_token(interpreter_memblock_t &imb, token_t t) {
+	switch (t.token) {
+	case EMPTY:
+		printf("Skipped empty token\n"); break;
+	case __LEGACY_INT:
+		try {
+			int id = std::stoi(t.associated.at(1));
+			switch (id) {
+			case 0:
+				execute_main_analysis_correlate(imb.table, imb.variables, std::vector<custom_var_t>());
+			}
+		}
+		catch (std::exception &e) {
+			printf("Failed to execute internal legacy macro\n    [%s]", e.what());
+		}
+		break;
+	default:
+		printf("Behavior for token %d is undefined\n", t.token);
+		break;
+	}
 
+	return true;
+}
+
+bool imb_save_enumerated_file(interpreter_memblock_t &imb, std::ofstream &o) {
+	/*
+		TODO:
+		- write basic header
+		- write DB save
+		- write tokens with links to associated 
+		- write associated
+		- write footer
+	*/
+}
+
+bool imb_open_enumerated_file(interpreter_memblock_t &imb, std::ifstream &i, std::vector<token_t> &toks) {
+	/*
+		TODO:
+		- read in all data in loop until hit footer
+		- validate via header
+	*/
+}
+
+bool imb_execute_script(interpreter_memblock_t &imb, std::vector<token_t> toks) {
+	for (token_t t : toks)
+		imb_execute_token(imb, t);
+
+	return true;
+}
+
+bool imb_execute_script(interpreter_memblock_t &imb, std::ifstream &i) {
+	std::string s;
+	std::vector<token_t> toks;
+
+	if (!i.is_open()) {
+		printf("Internal error while attempting to execute script\n");
+		return false;
+	}
+
+	i >> s;
+	if (s == "~DBSyft2") {
+		// TODO Handle header and pre-script here
+		imb_enumerate_file(imb, i, toks);
+	}
+	else if (s == "DBSYFTENUMSRP") {
+		// TODO Handle header and pre-script here
+		imb_open_enumerated_file(imb, i, toks);
+	}
+	else {
+		printf("Unable to read script for executing\n    Perhaps it is a legacy script?\n");
+		return false;
+	}
+
+	imb_execute_script(imb, toks);
+
+	return true;
 }

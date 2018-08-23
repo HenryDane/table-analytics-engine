@@ -54,4 +54,36 @@ bool imb_set_var(interpreter_memblock_t &imb, std::string var);
 /*
 	executes token on the data inside imb
 */
-bool imb_enumerate_token(interpreter_memblock_t &imb, std::string token);
+token_t imb_enumerate_token(interpreter_memblock_t &imb, std::string token);
+
+/*
+	produces a chain of tokens from an un-enumerated file
+	expects header and pre-script data to have already been read.
+*/
+bool imb_enumerate_file(interpreter_memblock_t &imb, std::ifstream &i, std::vector<token_t> &tokens);
+
+/*
+	executes a token by making the correct c++ function calls;
+*/
+bool imb_execute_token(interpreter_memblock_t &imb, token_t t);
+
+/*
+	opens an enumerated script (binary format)
+	expects header and pre-script to have been read away already
+*/
+bool imb_open_enumerated_file(interpreter_memblock_t &imb, std::ifstream &i, std::vector<token_t> &toks);
+
+/*
+	creates an enumerated script file, including db saves, etc.
+*/
+bool imb_save_enumerated_file(interpreter_memblock_t &imb, std::ofstream &o);
+
+/*
+	executes a list of tokens
+*/
+bool imb_execute_script(interpreter_memblock_t &imb, std::vector<token_t> toks);
+
+/*
+	reads a script file (enumerated or no) and executes it 
+*/
+bool imb_execute_script(interpreter_memblock_t &imb, std::ifstream &i);

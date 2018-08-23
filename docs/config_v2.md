@@ -1,4 +1,4 @@
-# Kevinscript Version 2 Guide
+# DBSyft Version 2 Guide
 QAQC Codes:
 - `!` Unimplmented
 - `NT` Untested
@@ -9,7 +9,7 @@ QAQC Codes:
 ## File format
 All files are formatted in the following manner:
 ```
-~ KS 2
+~ DBSyft 2
 ~ MODE {number of mode settings} {mode} 
 .db {main database name}
 {filename}
@@ -50,6 +50,13 @@ There are three distinct data types in Kevinscript.
 ## Instructions
 No instructions are currently implemented.
 
+### Text
+. `TEXT`
+. `WRITE`
+. `DELETE`
+. `BL`
+. `NL`
+
 ### Variable manipulation
 `SETAGG` Sets aggregation (triggerns internal state changes)
 `SETPER` Sets period (triggerns internal state changes)
@@ -61,6 +68,7 @@ No instructions are currently implemented.
 `MKDB` Creates a database
 `DELDB` Deletes a database
 `COPYDB` Copies a database 
+. `LOOPDB`
 
 ### Stack manipulation
 `PUSH` Pushes a variable or database onto the stack
@@ -76,6 +84,22 @@ No instructions are currently implemented.
 `EXECUTE` Executes a macro
 `MACROLOOP` Loops through a list, executing a macro each time
 `MACROTABLE` Loops through two lists, executing a macro each time
+
+## List manipulation
+. `LIST` Creates a list
+. `LISTFS` Scans data into a list
+. `LISTFG` Copies unique variable table into list
+. `LISTADD` Merges two lists together
+
+### Control
+. `IF`
+. `ELSE`
+. `ELIF`
+. `FOR`
+. `WHILE`
+. `LABEL`
+. `GOTO`
+. `STOP`
 
 ### Simple analysis
 `FIRSTDATE` Gets the first date in a DB or a DB-variable
@@ -123,7 +147,11 @@ No instructions are currently implemented.
 `OCLIP`
 `NORMALIZE`
 
-### Legacy
+### Legacy and protected functions
 `__LEGACY_INT:{#}`
-`__LEGACY_EXECUTE_TOKEN`
-`__LEGACY_EXECUTE_SCRIPT`
+`__LEGACY_EXECUTE_TOKEN` Uses older code to execute token
+`__LEGACY_EXECUTE_SCRIPT` Uses older code to execute script
+. `__PROTECTED_DIRECT_EXECUTE` 
+. `__PROTECTED_MODIFY_TOKEN`
+. `__PROTECTED_DELETE_DIR`
+. `__PROTECTED_RBUILD_TOKENLIST`

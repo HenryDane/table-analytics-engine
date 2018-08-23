@@ -469,8 +469,6 @@ bool execute_config(std::vector<std::string> &variables,
 			rules_list.push_back(t);
 		}
 
-		//printf("%d is size! \n", variables.size());
-
 		if (selection.c_str()[0] == '*') {
 			// applying to all variables
 			//rules.clear();

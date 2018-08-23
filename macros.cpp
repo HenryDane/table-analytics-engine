@@ -536,7 +536,7 @@ int execute_main_full_analysis(std::vector<row_t> table, std::vector<std::string
 }
 
 void execute_main_analysis_correlate(std::vector<row_t> table, std::vector<std::string> variables, std::vector<custom_var_t> cvars) {
-	period_t p =  { "*", NONE, { 0, 0, 0, 0, 0 }, { 9999, 99, 99, 99, 99 }};
+	period_t p =  { "*", agg_t::NONE, { 0, 0, 0, 0, 0 }, { 9999, 99, 99, 99, 99 }};
 
 	int idx = 0;
 

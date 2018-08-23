@@ -4,6 +4,7 @@
 #include <string>
 #include <tuple>
 #include <fstream>
+#include <vector>
 
 struct date_t {
 	int year;
@@ -183,7 +184,8 @@ struct quantile_t {
 };
 
 enum token_enum_t {
-	TEXT, WRITE, DELETE, BL, NL,
+	/* instructions */
+	/*TEXT, WRITE, DELETEi, BL, NL,*/
 	SETAGG, SETPER, SETVAR, SETMVR, SETFILE,
 	MKDB, DELDB, COPYDB,
 	PUSH, POP, SWAP, SIFT, __STACKWIPE,
@@ -195,21 +197,29 @@ enum token_enum_t {
 	MIN, MAX, RANGE, IQR, PERCENTILE, RPERCENTILE,
 	CORR, PCORR,
 	LINT, POLYINT, NEARINT,
-	OCLIP,
-	NORMALIZE,
+	OCLIP, NORMALIZE,
 	__LEGACY_INT, __LEGACY_EXECUTE_TOKEN, __LEGACY_EXECUTE_SCRIPT,
 	
+	/* variables */
 	__FILEv__, __VAR__, __MVR__, __AGG__, __PER__,
+
+	/* operators */
+	__ADD__, __SUB__, __DIV__, __DIV_FLOOR__, __MULT__, __COPY_LTR__, 
+
+	/* references */
 	__LITERAL__, __DB_REF__, __VAR_REF__, __TABLE_REF__,
 	__EXTERN_REF__, 
-	__INVALID__, __ERROR__, __COMMENT__, 
 
-	NONE
+	/* meta */
+	__INVALID__, __ERROR__, __COMMENT__, __LABEL__, 
+
+	/* empty */
+	EMPTY
 };
 
 struct token_t {
 	token_enum_t token;
-	std::vector<int> associated;
+	std::vector<std::string> associated;
 };
 
 struct interpreter_memblock_t {
