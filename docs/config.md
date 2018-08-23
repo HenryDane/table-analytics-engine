@@ -71,8 +71,8 @@ I !! `BMACRO` a comment-like token which signals that a macro has begun. This is
 NT `SYS:REGISTRY:LIST:ADD:{Name}:{Item}` adds item {Item} to the list {Name}.\
 NT `SYS:REGISTRY:LIST:MERGE:{Name 1}:{Name 2}` concatenates the two lists into the first.\
 `SYS:REGISTRY:LIST:SCAN:{Name}` reads items into a list until `ELIST` is encountered.\
-! `SYS:REGISTRY:LIST:FCVAR:{Name}:{Var Name}` reads items from custom var def into {Name}.\
-! `SYS:REGISTRY:LIST:FGVAR:{Name}` copies the unique variable list into {Name}.
+!! `SYS:REGISTRY:LIST:FCVAR:{Name}:{Var Name}` reads items from custom var def into {Name}.\
+`SYS:REGISTRY:LIST:FGVAR:{Name}` copies the unique variable list into {Name}.
 
 ### Filter 
 `SYS:FILTER:RESET` Resets all filters to raw variable.
@@ -107,7 +107,6 @@ NT `CONCAT:T:{Value}:{Token}` concatenates {Value} and the result of token, sepe
 NT `MACRO:LOADSTR:{Name}:{Num Items}` Reads {Num Items} items into macro {Name}.\
 `MACRO:TABLE:{Col List}:{Row List}:{Macro}` Executes {Macro}, passing {Col List} components as `__MVR__` and {Row List} Components as `__VAR__`. Automatically pushes and pops `__MVR__` and `__VAR__`.
 `MACRO:TABLEL:{Col List}:{Row List}:{Macro}` Executes {Macro}, passing {Col List} components as `__MVR__` and {Row List} Components as `__VAR__`. Automatically pushes and pops `__MVR__` and `__VAR__`. Also prints out values of `__MVR__` and `__VAR__` as labels on the columns and rows.
-
 
 ### Logic
 If logic is to be used the `LOGIC_OK` flag should be used. If edits to databases (e.g. via `DBLOOP` or `DBCLEAN`) are to be saved to the original database then the flag `OVERWRITE_DB_OK` flag should be used. `LOGIC` may be use in place of `~`.
@@ -174,3 +173,12 @@ Value is always a literal number.
 ! `VARS:{Var Name}:NEARINT:{A/N/H/D/M/Y}`
 
 ! `VARS:{Var Name}:OCLIP` Clips outliers out of {Var Name}.
+
+! `VARS:{Var Name}:NORMALIZE` Converts all values from [min, max] to [0, 1].
+
+### Internally-defined macros
+See individual function docs for more infornmation.
+
+NT `INT0` runs analysis on all variables.\
+
+NT `INT1` generates 13 correlation tables for all variables.

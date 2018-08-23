@@ -12,6 +12,7 @@
 #include "mkt.h"
 #include "theilsen.h"
 #include "linreg.h"
+#include "macros.h"
 
 void yearly_agg(std::vector<row_t> &tbl) {
 	std::vector<row_t> table_agg;
@@ -161,7 +162,7 @@ list_t get_list_by_name(std::vector<list_t> l, std::string n) {
 			return l.at(i);
 			break;
 		}
-	} 
+	}
 
 	// return garbage
 	return{ "__BAD_LIST__", (std::vector<std::string>) NULL };
@@ -274,7 +275,7 @@ bool execute_token(std::istream &cfg,
 						}
 						break;
 					}
-				} 
+				}
 			}
 		}
 		else if (tokens.at(1) == "DBLOOP") {
@@ -317,7 +318,8 @@ bool execute_token(std::istream &cfg,
 						}
 					}
 					if (debug) printf("SYS:OUT:__VAR__ loaded %d records of [%s]\n", ltable.size(), current_var.c_str());
-				} else {
+				}
+				else {
 					current_var = tokens.at(3);
 
 					// make table
@@ -446,7 +448,8 @@ bool execute_token(std::istream &cfg,
 				p.end.day = std::stoi(tokens.at(9));
 				periods.push_back(p);
 				if (debug) printf("SYS:REGISTRY:PERIOD loaded %s successfully\n", tokens.at(3).c_str());
-			} else if (tokens.at(2) == "LIST") {
+			}
+			else if (tokens.at(2) == "LIST") {
 				if (tokens.at(3) == "CREATE") {
 					list_t l;
 					l.name = tokens.at(4);
@@ -464,7 +467,7 @@ bool execute_token(std::istream &cfg,
 				else if (tokens.at(3) == "FCVAR") {
 					list_t l;
 					l.name = tokens.at(4);
-					
+
 					int i = 0;
 					bool found = false;
 					for (; i < cvars.size(); i++) {
@@ -532,7 +535,7 @@ bool execute_token(std::istream &cfg,
 							break;
 						}
 					}
-					
+
 					std::vector<std::string> variables;
 					for (int i = 0; i < table.size(); i++) {
 						bool f = false;
@@ -908,7 +911,7 @@ bool execute_token(std::istream &cfg,
 
 			macro_t m;
 			bool found = false;
-			
+
 			for (int i = 0; i < macros.size(); i++) {
 				if (macros.at(i).name == tokens.at(4)) {
 					m = macros.at(i);
@@ -919,7 +922,7 @@ bool execute_token(std::istream &cfg,
 			if (!found) {
 				printf("Bad macro id\n");
 			}
-			
+
 			if (l1.name == "__BAD_LIST__" || l2.name == "__BAD_LIST__") {
 				printf("Bad list argument(s)\n");
 			}
@@ -1135,6 +1138,12 @@ bool execute_token(std::istream &cfg,
 			if (debug) printf("Bad macro keyword %s \n", tokens.at(1).c_str());
 		}
 	}
+	else if (tokens.at(0) == "INT0") {
+		execute_main_full_analysis(table, id_variables(table), periods, cvars);
+	}
+	else if (tokens.at(0) == "INT1") {
+		execute_main_analysis_correlate(table, id_variables(table), cvars);
+	}
 	else {
 		if (debug) printf("did not recognize token [%s]\n", this_token.c_str());
 	}
@@ -1237,7 +1246,7 @@ void do_console(std::vector<row_t> table, std::vector<custom_var_t> cvars, std::
 	std::string var;
 	std::string mvr;
 	std::string avar;
-	
+
 	int state = 0;
 
 	script_flag_t flags;
@@ -1248,7 +1257,7 @@ void do_console(std::vector<row_t> table, std::vector<custom_var_t> cvars, std::
 	std::vector<list_t> lists;
 	std::vector<period_t> periods;
 	//std::vector<custom_var_t> cvars;
-	
+
 	std::ofstream out;
 	out.open("consoleresults.txt", std::ios::app);
 
@@ -1257,7 +1266,7 @@ void do_console(std::vector<row_t> table, std::vector<custom_var_t> cvars, std::
 		std::cout << ">>> ";
 		std::cin >> str;
 
-		if (str == "EXIT") break;
+		if (str == "EXIT" || str == "e") break;
 
 		//execute_token( std::cin, str, split(str, ':'), out, state, var, ltable, table, macros, cvars, periods, flags, mvr, lists, avar, true);
 

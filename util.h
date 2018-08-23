@@ -21,6 +21,7 @@ void null_shield(std::vector<row_t> &table);
 double clip_date(std::vector<row_t> &tablea, std::vector<row_t> &tableb, bool d = false);
 void reflag_table(std::vector<row_t> &t);
 void gen_plot(std::vector<row_t> t);
+std::vector<std::string> id_variables(std::vector<row_t> t);
 //void build_custom_vars(std::vector<row_t> &t, std::vector<custom_var_t> cvars);
 
 // sort functions

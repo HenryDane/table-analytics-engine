@@ -10,6 +10,27 @@
 #include <iomanip>
 #include "main.h"
 
+std::vector<std::string> id_variables(std::vector<row_t> t) {
+	std::vector<std::string> variables;
+	for (unsigned int i = 0; i < t.size(); i++) {
+		printf("Reading row %d \r", i);
+
+		bool found = false;
+		if (i > t.size()) i = 0;
+
+		for (unsigned int j = 0; j < variables.size(); j++) {
+			if (variables.at(j) == t.at(i).variable) {
+				found = true;
+				break;
+			}
+		}
+		if (!found) {
+			variables.push_back(t.at(i).variable);
+		}
+	}
+	return variables;
+}
+
 bool is_inside(std::vector<std::string> vec, std::string str) {
 	for (unsigned int i = 0; i < vec.size(); i++) {
 		if (str.compare(vec.at(i)) == 0) {

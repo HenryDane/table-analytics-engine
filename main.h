@@ -3,6 +3,7 @@
 
 #include <string>
 #include <tuple>
+#include <fstream>
 
 struct date_t {
 	int year;
@@ -139,7 +140,7 @@ struct variable_t {
 };
 
 enum agg_t {
-	YEARLY = 0, MONTHLY, DAILY, NONE
+	YEARLY = 0, MONTHLY, DAILY, HOURLY, NONE
 };
 
 struct period_t {
@@ -181,6 +182,65 @@ struct quantile_t {
 	double l;
 };
 
+enum token_enum_t {
+	TEXT, WRITE, DELETE, BL, NL,
+	SETAGG, SETPER, SETVAR, SETMVR, SETFILE,
+	MKDB, DELDB, COPYDB,
+	PUSH, POP, SWAP, SIFT, __STACKWIPE,
+	MACRO, MACROF, MACROS, EXECUTE, MACROLOOP, MACROTABLE,
+	FIRSTDATE, LASTDATE, MEAN, MEDIAN, STDDEV, COEFVAR, 
+	MANNKENDALLP, MANNKENDALLZ, MANNKENDALLH, MANNKENDALLT, MANNKENDALLTAU,
+	THEILSENSLOPE,
+	LINRA, LINRB, LINRR, POLYREG, EXPREG,
+	MIN, MAX, RANGE, IQR, PERCENTILE, RPERCENTILE,
+	CORR, PCORR,
+	LINT, POLYINT, NEARINT,
+	OCLIP,
+	NORMALIZE,
+	__LEGACY_INT, __LEGACY_EXECUTE_TOKEN, __LEGACY_EXECUTE_SCRIPT,
+	
+	__FILEv__, __VAR__, __MVR__, __AGG__, __PER__,
+	__LITERAL__, __DB_REF__, __VAR_REF__, __TABLE_REF__,
+	__EXTERN_REF__, 
+	__INVALID__, __ERROR__, __COMMENT__, 
+
+	NONE
+};
+
+struct token_t {
+	token_enum_t token;
+	std::vector<int> associated;
+};
+
+struct interpreter_memblock_t {
+	// state
+	int id;
+	int state;
+	script_flag_t flags;
+	period_t active_period;
+	agg_t active_aggregation;
+
+	// files
+	std::ifstream cfg;
+	std::ofstream out;
+
+	// vars
+	std::string file;
+	std::string agg;
+	std::string var;
+	std::string mvr;
+
+	// databases
+	std::vector<row_t> table; // top-level table (cvars build-in)
+	std::vector<row_t> atable; // aggregated table
+	std::vector<row_t> ltable; // local table
+
+	// other
+	std::vector<macro_t> macros;
+	std::vector<list_t> lists;
+	std::vector<std::string> variables;
+};
+
 #define F_CORRECT_TIES 0
 #define F_MAKE_CSV 1 // leave at 1
 #define F_PRINT_VARS 1
@@ -196,8 +256,8 @@ struct quantile_t {
 
 #define GNUPLOT_PATH "C:\\Users\\holling\\Downloads\\gnuplot-53pl0w64\\gnuplot\\bin\\gnuplot.exe"
 
-#define FIRST_DATE ((date_t){0, 0, 0, 0, 0})
-#define END_DATE ((date_t){9999, 99, 99, 99, 99})
+const date_t FIRST_DATE = { 0, 0, 0, 0, 0 };
+const date_t LAST_DATE = { 9999, 99, 99, 99, 99 };
 
 const std::string months[13] = { "N/A", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
 
