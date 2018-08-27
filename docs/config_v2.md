@@ -9,7 +9,7 @@ QAQC Codes:
 ## File format
 All files are formatted in the following manner:
 ```
-~ DBSyft 2
+~DBSyft2
 ~ MODE {number of mode settings} {mode} 
 .db {main database name}
 {filename}

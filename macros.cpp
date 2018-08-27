@@ -377,10 +377,10 @@ int execute_main_analysis(std::vector<row_t> table, std::vector<std::string> var
 	//printf("opened\n");
 	pcorfile << "X, SAC4_by_Sea_Level, SJQ4_by_Sea_Level, Sea_Level_by_SAC4, Sea_Level_by_SJQ4," << std::endl;
 	// SJQ4
-	for (int i = 0; i < cvars.at(2).pieces.size(); i++) {
+	for (unsigned int i = 0; i < cvars.at(2).pieces.size(); i++) {
 		printf("%d / %d \r", i + 1, cvars.at(2).pieces.size());
 		std::vector<row_t> salinity;
-		for (int j = 0; j < table.size(); j++) {
+		for (unsigned int j = 0; j < table.size(); j++) {
 			if (table.at(j).variable == cvars.at(2).pieces.at(i)) {
 				row_t r = table.at(j);
 				salinity.push_back(r);
@@ -462,7 +462,7 @@ int execute_main_full_analysis(std::vector<row_t> table, std::vector<std::string
 		
 		results << "DATE,Z,P,T,Slope,A,B,R,Mean,CV,Median,NDO,Mean Tide" << std::endl;
 
-		for (int j = 0; j < periods.size(); j++) { // loop for each period
+		for (unsigned int j = 0; j < periods.size(); j++) { // loop for each period
 			results << std::endl << "Period: " << periods[j].toString() << std::endl;
 			for (int k = 0; k <= 12; k++) {
 				// print progress

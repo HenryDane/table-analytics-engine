@@ -27,6 +27,7 @@ double median(std::vector<row_t> table) {
 			return (table.at((table.size() / 2) - 1).value.v + table.at(table.size() / 2).value.v) / 2; //even
 		}
 		catch (std::exception &e) {
+			(void)e;
 			//std::cout << e.what() << std::endl;
 			//std::cout << table.size() << std::endl;
 			return NAN;
@@ -169,7 +170,7 @@ double correlation(std::vector<row_t> tablea, std::vector<row_t> tableb, bool d)
 	}
 
 	if (tablea.size() != tableb.size()) {
-		for (int i = 0; i < std::min(tablea.size(), tableb.size()); i++) {
+		for (unsigned int i = 0; i < std::min(tablea.size(), tableb.size()); i++) {
 			if (d) printf("%s [%f] | %s [%f]\n", date_toString(tablea.at(i).date).c_str(), tablea.at(i).value.v, date_toString(tableb.at(i).date).c_str(), tableb.at(i).value.v);
 		}
 		if (d) printf("wrong size! %d %d\n", tablea.size(), tableb.size());
@@ -182,13 +183,13 @@ double correlation(std::vector<row_t> tablea, std::vector<row_t> tableb, bool d)
 	double sumsq_a = 0;
 	double sumsq_b = 0;
 
-	int n = std::min(tablea.size(), tableb.size());
+	unsigned int n = std::min(tablea.size(), tableb.size());
 	if (n == 0) {
 		return INFINITY;
 	}
 	
 	int s = 0;
-	for (int i = 0; i < n; i++){
+	for (unsigned int i = 0; i < n; i++){
 		if (tablea.at(i).value.f || tableb.at(i).value.f ||
 			isnan(tablea.at(i).value.v) || isnan(tableb.at(i).value.v)) {
 			//if (d) printf("I FOUND A NULL!\n");

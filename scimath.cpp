@@ -20,17 +20,17 @@ quantile_t scimath_quantile(std::vector<row_t> &t, double lbound, double ubound)
 	double uq = ubound * n;
 
 	if (floor(lq) == lq) {
-		q.l = t[lq - 1].value.v;
+		q.l = t[(int) lq - 1].value.v;
 	}
 	else {
-		q.l = (t[floor(lq) - 1].value.v + t[floor(lq)].value.v) / 2;
+		q.l = (t[(int) floor(lq) - 1].value.v + t[(int) floor(lq)].value.v) / 2;
 	}
 
 	if (floor(uq) == uq) {
-		q.h = t[uq - 1].value.v;
+		q.h = t[(int) uq - 1].value.v;
 	}
 	else {
-		q.h = (t[floor(uq) - 1].value.v + t[floor(uq)].value.v) / 2;
+		q.h = (t[(int) floor(uq) - 1].value.v + t[(int) floor(uq)].value.v) / 2;
 	}
 
 	return q;
@@ -69,15 +69,17 @@ std::vector<row_t> scipy_median_filter(std::vector<row_t> &t, int window) {
 	//null_shield(t);
 	std::vector<row_t> b;
 
-	for (int i = 0; i < t.size(); i++) {
+	for (unsigned int i = 0; i < t.size(); i++) {
 		std::vector<row_t> a;
 		int n = t.size();
 		//printf("smf %d / %d \r", i + 1, n);
-		for (int j = i - window; j <= i + window; j++) {
+		for (unsigned int j = i - window; j <= i + window; j++) {
 			try {
 				a.push_back(t.at(j));
 			}
-			catch (std::exception &e) {	}
+			catch (std::exception &e) {	
+				(void)e;
+			}
 		}
 
 		if (a.size() == 0) continue;

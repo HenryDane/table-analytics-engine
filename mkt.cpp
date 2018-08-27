@@ -130,8 +130,8 @@ double mann_kendall_tau(std::vector<row_t> table) {
 	//printf("MKT /> %f %d\n", a, n);
 	double b = 0;
 
-	for (int i = 0; i < table.size(); i++) {
-		for (int j = i; j < table.size(); j++) {
+	for (unsigned int i = 0; i < table.size(); i++) {
+		for (unsigned int j = i; j < table.size(); j++) {
 			double c = np_sign(table.at(i).value.v - table.at(j).value.v);
 			double d = np_sign(table.at(i).date.numeric() - table.at(j).date.numeric());
 			b += (c * d);

@@ -11,7 +11,7 @@ void linear_interpolate(std::vector<row_t> &t) {
 
 	if (t.size() < 4) return;
 
-	for (int i = 0; i < t.size(); i++) {
+	for (unsigned int i = 0; i < t.size(); i++) {
 		int offset_a = 1;
 		int offset_b = 1;
 		int offset_c = 2;

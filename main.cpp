@@ -45,7 +45,7 @@ int main() {
 	srand((unsigned int)time(NULL));
 	std::vector<row_t> table;
 	std::vector<custom_var_t> cvars;
-	char tmp[255];
+//	char tmp[255];
 	int skipped = 0;
 	std::string __table_name__ = "_compile.stxt";
 	int __table_suffix__ = rand() % 1000;
@@ -97,13 +97,13 @@ int main() {
 #if F_REBUILD_TABLE == 1
 	printf("Rebuilding table\n");
 	std::vector<row_t> table_fixed;
-	for (int i = 0; i < variables.size(); i++) {
+	for (unsigned int i = 0; i < variables.size(); i++) {
 		//printf("loopstart\n");
 		std::vector<row_t> local_table;
 		std::vector<row_t> local_result_table;
 
 		//printf("efio\n");
-		for (int j = 0; j < table.size(); j++) {
+		for (unsigned int j = 0; j < table.size(); j++) {
 			printf("%d / %d [%d] \r", j + 1, table.size(), i + 1);
 			if (variables.at(i) == table.at(j).variable) {
 				local_table.push_back(table.at(j));
@@ -113,7 +113,7 @@ int main() {
 
 		//printf("efji\n");
 		std::sort(table.begin(), table.end(), table_id_sort);
-		for (int d = 0; d < table.size(); d++) {
+		for (unsigned int d = 0; d < table.size(); d++) {
 			if (table.at(d).id > -50) {
 				if (d > 0 && d < table.size()) {
 					table.erase(table.begin(), table.begin() + d - 1);
@@ -127,7 +127,7 @@ int main() {
 		resolve_table_state(local_table);
 
 		if (global_min_agg == DAILY) {
-			for (int j = 0; j < local_table.size(); j++) {
+			for (unsigned int j = 0; j < local_table.size(); j++) {
 				printf("%d / %d [%d] \r", j + 1, local_table.size(), i + 1);
 				if (local_table.at(j).id == -100) continue;
 
@@ -135,7 +135,7 @@ int main() {
 				local_table.at(j).id = -100;
 				r.edits = 1;
 
-				for (int k = 0; k < local_table.size(); k++) {
+				for (unsigned int k = 0; k < local_table.size(); k++) {
 					//printf("%d %d (%d / %d)\r", j + 1, k + 1, (j + 1) * (k + 1), local_table.size() * local_table.size());
 					if (local_table.at(k).id == -100) continue;
 					if (k == j) continue;
@@ -179,7 +179,7 @@ int main() {
 			printf("err\n");
 		}
 		//printf("stuff2 %d \n", local_result_table.size());
-		for (int m = 0; m < local_result_table.size(); m++) {
+		for (unsigned int m = 0; m < local_result_table.size(); m++) {
 			//outtmp << local_result_table.at(m).id << " ";
 			outtmp << date_toString(local_result_table.at(m).date) << " ";
 			outtmp << local_result_table.at(m).date.month << " ";
@@ -218,12 +218,12 @@ int main() {
 	// gen cvar ts data
 	std::ofstream dataout;
 	dataout.open(__table_name__ + "." + std::to_string(__table_suffix__), std::ios::app);
-	for (int i = 0; i < cvars.size(); i++) {
+	for (unsigned int i = 0; i < cvars.size(); i++) {
 		std::vector<row_t> t;
 
 		filter_by_variable(table, t, cvars.at(i).pieces, cvars.at(i).name, true, true);
 
-		for (int j = 0; j < t.size(); j++) {
+		for (unsigned int j = 0; j < t.size(); j++) {
 			dataout << date_toString(t.at(j).date) << " ";
 			dataout << t.at(j).date.month << " ";
 			dataout << t.at(j).date.year << " ";
@@ -245,7 +245,7 @@ int main() {
 
 #if F_GEN_TS_ALL == 1
 	CreateDirectory(L".\\ts", NULL);
-	for (int i = 0; i < variables.size(); i++) {
+	for (unsigned int i = 0; i < variables.size(); i++) {
 		std::ofstream ofile;
 		std::string fname = "ts\\" + variables.at(i) + ".csv";
 		ofile.open(fname);
@@ -255,7 +255,7 @@ int main() {
 		}
 
 		ofile << "'ID,DATE,MTH,YEAR,VAR,VAL,UNITS" << std::endl;
-		for (int j = 0; j < table.size(); j++) {
+		for (unsigned int j = 0; j < table.size(); j++) {
 			if (table.at(j).variable == variables.at(i)) {
 				ofile << table.at(j).id << ",";
 				ofile << date_toString(table.at(j).date).c_str() << ",";
@@ -276,7 +276,7 @@ int main() {
 	}
 
 	
-	for (int i = 0; i < cvars.size(); i++) {
+	for (unsigned int i = 0; i < cvars.size(); i++) {
 		std::ofstream ofile;
 		std::string fname = "ts\\" + cvars.at(i).name + ".csv";
 		ofile.open(fname);
@@ -289,7 +289,7 @@ int main() {
 		std::vector<row_t> t;
 		filter_by_variable(table, t, n, " ", true);
 
-		for (int j = 0; j < t.size(); j++) {
+		for (unsigned int j = 0; j < t.size(); j++) {
 			ofile << t.at(j).id << ",";
 			ofile << date_toString(t.at(j).date).c_str() << ",";
 			ofile << t.at(j).date.month << ",";
@@ -321,12 +321,12 @@ int main() {
 	variable_times_file << "Num Vars:," << variables.size() << std::endl;
 	variable_times_file << "Variable, Start Date, End Date, No. Records, Units" << std::endl;
 	//printf("vs: %d\n", variables.size());
-	for (int i = 0; i < variables.size(); i++) {
+	for (unsigned int i = 0; i < variables.size(); i++) {
 		//printf("i: %d\n", i);
 		std::vector<row_t> vtable;
 		//printf("f: %d\n", found);
 		
-		for (int j = 0; j < table.size(); j++) {
+		for (unsigned int j = 0; j < table.size(); j++) {
 			if (table.at(j).variable == variables.at(i)) {
 				row_t r = table.at(j);
 				vtable.push_back(r);
@@ -365,7 +365,7 @@ table_cleanup_begin:
 
 	printf("Executing scripts\n");
 
-	for (int i = 0; i < scripts.size(); i++) {
+	for (unsigned int i = 0; i < scripts.size(); i++) {
 		printf("Executing %s ...\n", scripts.at(i).c_str());
 		execute_script(scripts.at(i).c_str(), table, variables, rules, cvars);
 	}
@@ -477,7 +477,7 @@ bool execute_config(std::vector<std::string> &variables,
 			// applying to all with length less than X
 			std::string len = selection.substr(1);
 			std::vector<std::string> apply_to;
-			int length;
+			unsigned int length;
 			try {
 				length = std::stoi(len);
 			} catch (std::exception &e) {
@@ -578,7 +578,7 @@ bool apply_rules(std::vector<std::string> &apply_to, std::vector<std::string> &r
 		else if (rules_list.at(j).c_str()[0] == '_') {
 			// up to length of X
 			std::string len = rules_list.at(j).substr(1);
-			int length;
+			unsigned int length;
 			try {
 				length = std::stoi(len);
 			}

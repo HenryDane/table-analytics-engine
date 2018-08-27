@@ -205,7 +205,7 @@ void filter_by_variable(std::vector<row_t> table,
 		}
 
 		// fix averages (i think)
-		for (int i = 0; i < ltable.size(); i++) {
+		for (unsigned int i = 0; i < ltable.size(); i++) {
 			ltable.at(i).value.v = ltable.at(i).value.v / ltable.at(i).edits;
 		}
 
@@ -392,79 +392,14 @@ bool edit_sort(row_t i, row_t j) {
 }
 
 void print_table_c(std::vector<row_t> &t) {
-	for (int i = 0; i < t.size(); i++) {
+	for (unsigned int i = 0; i < t.size(); i++) {
 		printf("%s\n", t.at(i).toString().c_str());
 	}
 }
 
 void reflag_table(std::vector<row_t> &t) {
-	for (int i = 0; i < t.size(); i++)
+	for (unsigned int i = 0; i < t.size(); i++)
 		t[i].value.f = t[i].value.f || isnan(t[i].value.v);
-}
-
-/*
- does not work
-*/
-void aggregate_table(std::vector<row_t> &table, agg_t agg) {
-	int idx = 0;
-	std::ofstream ofs;
-
-	int cycle = 0;
-	switch (agg) {
-	case YEARLY:
-		std::sort(table.begin(), table.end(), date_sort);
-		for (int i = 0; i < table.size(); i++) {
-			for (int j = i; j < table.size(); j++) {
-				printf("%d \r", cycle);
-				if (table.at(j).edits < 0 || table.at(i).edits  < 0) continue;
-
-				if (table.at(i).date.year == table.at(j).date.year && table.at(i).variable == table.at(j).variable) {
-					if (table.at(i).value.f) {
-						if (table.at(j).value.f) {
-							table.at(i).value.v = NAN;
-						} else {
-							table.at(i).value.v = table.at(j).value.v;
-							table.at(i).value.f = false; // reset flag
-						}
-					} else {
-						if (!table.at(j).value.f) {
-							table.at(i).value.v += table.at(j).value.v;
-						}
-					}
-					table.at(i).edits++;
-					table.at(i).edits += (table.at(j).edits > 0) ? table.at(j).edits : 0;
-					table.at(j).edits = -100; // flag as done
-					cycle++;
-					//i = 0; j = 0;
-				}
-			}
-		}
-
-		printf("sort\n");
-		std::sort(table.begin(), table.end(), edit_sort);
-		for (; idx < table.size(); idx++) {
-			if (table.at(idx).edits > -100) {
-				break;
-			}
-		}
-		printf("%d %d\n", idx, table.size());
-		//table.erase(table.begin(), table.begin() + idx);
-
-		std::sort(table.begin(), table.end(), date_sort);
-
-		ofs.open("m.txt", std::ios::trunc);
-		if (!ofs.is_open()) {
-			printf("err\n");
-		}
-		for (int i = 0; i < table.size(); i++) {
-			ofs << table.at(i).id << " " << date_toString(table.at(i).date) << " " << table.at(i).value.v << " " << table.at(i).edits << std::endl;
-		}
-		ofs.close();
-		return;
-	default:
-		printf("undefined aggregation\n");
-		return;
-	}
 }
 
 bool date_in_period(date_t d, period_t p) {
@@ -559,8 +494,8 @@ bool table_value_sort(row_t i, row_t j) {
 
 void strip_null(std::vector<row_t> &tablea, std::vector<row_t> &tableb) {
 	// printf("old: %d %d ", tablea.size(), tableb.size());
-	for (int i = 0; i < tablea.size(); i++) {
-		for (int j = 0; j < tableb.size(); j++) {
+	for (unsigned int i = 0; i < tablea.size(); i++) {
+		for (unsigned int j = 0; j < tableb.size(); j++) {
 			if (is_equal(tablea.at(i).date, tableb.at(j).date) &&
 			   (tablea.at(i).value.f || tableb.at(j).value.f)) {
 				tablea.at(i).id = -100;
@@ -569,17 +504,17 @@ void strip_null(std::vector<row_t> &tablea, std::vector<row_t> &tableb) {
 		}
 	}
 
-	for (int i = 0; i < tablea.size(); i++) {
+	for (unsigned int i = 0; i < tablea.size(); i++) {
 		if (tablea.at(i).id == -100) {
 			tablea.erase(tablea.begin() + i);
-			i = std::max(0, i - 2); // go back to valid memory
+			i = std::max((unsigned int) 0, i - 2); // go back to valid memory
 		}
 	}
 
-	for (int i = 0; i < tableb.size(); i++) {
+	for (unsigned int i = 0; i < tableb.size(); i++) {
 		if (tableb.at(i).id == -100) {
 			tableb.erase(tableb.begin() + i);
-			i = std::max(0, i - 2); // go back to valid memory
+			i = std::max((unsigned int) 0, i - 2); // go back to valid memory
 		}
 	}
 	//printf("new: %d %d\n", tablea.size(), tableb.size());
@@ -589,21 +524,21 @@ void strip_null(std::vector<row_t> &a, std::vector<row_t> &b, std::vector<row_t>
 	std::vector<date_t> forbidden_dates;
 
 	// write
-	for (int i = 0; i < a.size(); i++) {
+	for (unsigned int i = 0; i < a.size(); i++) {
 		if (a[i].value.f || isnan(a[i].value.v)) {
 			a[i].id = -10;
 			forbidden_dates.push_back(a[i].date);
 		}
 	}
 	//printf("F.D.: %d\n", forbidden_dates.size());
-	for (int i = 0; i < b.size(); i++) {
+	for (unsigned int i = 0; i < b.size(); i++) {
 		if (b[i].value.f || isnan(b[i].value.v)) {
 			b[i].id = -10;
 			forbidden_dates.push_back(b[i].date);
 		}
 	}
 	//printf("F.D.: %d\n", forbidden_dates.size());
-	for (int i = 0; i < c.size(); i++) {
+	for (unsigned int i = 0; i < c.size(); i++) {
 		if (c[i].value.f || isnan(c[i].value.v)) {
 			c[i].id = -10;
 			forbidden_dates.push_back(c[i].date);
@@ -612,22 +547,22 @@ void strip_null(std::vector<row_t> &a, std::vector<row_t> &b, std::vector<row_t>
 	//printf("F.D.: %d\n", forbidden_dates.size());
 
 	// read 
-	for (int i = 0; i < a.size(); i++) {
-		for (int j = 0; j < forbidden_dates.size(); j++) {
+	for (unsigned int i = 0; i < a.size(); i++) {
+		for (unsigned int j = 0; j < forbidden_dates.size(); j++) {
 			if (a[i].date == forbidden_dates[j]) {
 				a[i].id = -10;
 			}
 		}
 	}
-	for (int i = 0; i < b.size(); i++) {
-		for (int j = 0; j < forbidden_dates.size(); j++) {
+	for (unsigned int i = 0; i < b.size(); i++) {
+		for (unsigned int j = 0; j < forbidden_dates.size(); j++) {
 			if (b[i].date == forbidden_dates[j]) {
 				b[i].id = -10;
 			}
 		}
 	}
-	for (int i = 0; i < c.size(); i++) {
-		for (int j = 0; j < forbidden_dates.size(); j++) {
+	for (unsigned int i = 0; i < c.size(); i++) {
+		for (unsigned int j = 0; j < forbidden_dates.size(); j++) {
 			if (c[i].date == forbidden_dates[j]) {
 				c[i].id = -10;
 			}
@@ -640,21 +575,21 @@ void strip_null(std::vector<row_t> &a, std::vector<row_t> &b, std::vector<row_t>
 	std::sort(c.begin(), c.end(), table_id_sort);
 
 	// erase
-	for (int i = 0; i < a.size(); i++) {
+	for (unsigned int i = 0; i < a.size(); i++) {
 		if (a[i].id > 0 && i > 0) {
 			a.erase(a.begin(), a.begin() + i - 1);
 			//printf("A: %d\n", i);
 			break;
 		}
 	}
-	for (int i = 0; i < b.size(); i++) {
+	for (unsigned int i = 0; i < b.size(); i++) {
 		if (b[i].id > 0 && i > 0) {
 			b.erase(b.begin(), b.begin() + i - 1);
 			//printf("B: %d\n", i);
 			break;
 		}
 	}
-	for (int i = 0; i < c.size(); i++) {
+	for (unsigned int i = 0; i < c.size(); i++) {
 		if (c[i].id > 0 && i > 0) {
 			c.erase(c.begin(), c.begin() + i - 1);
 			//printf("C: %d\n", i);
@@ -667,7 +602,7 @@ void null_shield(std::vector<row_t> &table) {
 	std::vector<row_t> t = table;
 	//printf("null_shield() -> inital: %d [%d]", t.size(), table.size());
 	table.clear();
-	for (int i = 0; i < t.size(); i++) {
+	for (unsigned int i = 0; i < t.size(); i++) {
 		if (!isnan(t.at(i).value.v)) {
 			table.push_back(t.at(i));
 		}
@@ -800,7 +735,7 @@ void gen_plot(std::vector<row_t> t) {
 
 	// write tmp data
 	f << "# tmp_plot.dat" << std::endl;
-	for (int i = 0; i < t.size(); i++) {
+	for (unsigned int i = 0; i < t.size(); i++) {
 		if (!t[i].value.f) {
 			f << std::setprecision(std::numeric_limits<long double>::digits10);
 			f << t[i].date.toString() << " " << t[i].value.v << " " << std::endl;

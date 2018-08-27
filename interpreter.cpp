@@ -348,10 +348,10 @@ token_t imb_enumerate_token(interpreter_memblock_t &imb, std::string token) {
 		tet = __ERROR__;
 	}
 	else {
-		printf("Error while enumerating token [%s]: Token not recognized\n");
+		printf("Error while enumerating token [%s]: Token not recognized\n", top.c_str());
 	}
 
-	if (tet == __ERROR__) printf("Error while enumerating token [%s]: Forward-defined tokens are not useable\n");
+	if (tet == __ERROR__) printf("Error while enumerating token [%s]: Forward-defined tokens are not useable\n", top.c_str());
 
 	token_t t;
 	t.token = tet;
@@ -390,6 +390,9 @@ bool imb_execute_token(interpreter_memblock_t &imb, token_t t) {
 			switch (id) {
 			case 0:
 				execute_main_analysis_correlate(imb.table, imb.variables, std::vector<custom_var_t>());
+				break;
+			default:
+				break;
 			}
 		}
 		catch (std::exception &e) {

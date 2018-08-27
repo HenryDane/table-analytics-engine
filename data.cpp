@@ -7,7 +7,7 @@
 #include "util.h"
 
 bool filter_bounds(std::vector<row_t> &table, double lbound, double ubound) {
-	for (int i = 0; i < table.size(); i++) {
+	for (unsigned int i = 0; i < table.size(); i++) {
 		if (table[i].value.v < lbound || table[i].value.v > ubound) {
 			table[i].value.v = NAN;
 			table[i].value.f = true;
@@ -30,7 +30,7 @@ bool filter_norepeats(std::vector<row_t> &table, unsigned int threshold) {
 	}
 
 	// for each element in data
-	for (int i = 0; i < table.size(); i++) {
+	for (unsigned int i = 0; i < table.size(); i++) {
 		// drop first element of vector
 		a.erase(a.begin());
 
@@ -53,7 +53,7 @@ bool filter_norepeats(std::vector<row_t> &table, unsigned int threshold) {
 			}
 
 			// overwrite values with NAN
-			for (int j = first_index; j < i; j++) {
+			for (unsigned int j = first_index; j < i; j++) {
 				table[i].value.v = NAN;
 				table[i].value.f = true;
 			}
@@ -88,18 +88,18 @@ bool filter_med_outliers(std::vector<row_t> &table,
 		filt = scipy_median_filter(table, secfilt_len);
 		res.resize(filt.size());
 
-		for (int i = 0; i < table.size(); i++) {
+		for (unsigned int i = 0; i < table.size(); i++) {
 			res[i] = table[i];
 			res[i].value.v = table[i].value.v - filt[i].value.v;
 		}
 
 		double iqr = NAN;
 
-		for (int k = 0; k < table.size(); k++) {
+		for (unsigned int k = 0; k < table.size(); k++) {
 			printf("%d / %d \r", k + 1, table.size());
 			if (isnan(secscale)) {
-				int slicelow = std::max(0, k - ((secfilt_len - 1) / 2));
-				int slicehigh = std::min((int) table.size(), k + ((secfilt_len - 1) / 2) + 1);
+				int slicelow = std::max((unsigned int) 0, k - ((secfilt_len - 1) / 2));
+				int slicehigh = std::min(table.size(), k + ((secfilt_len - 1) / 2) + 1);
 
 				double * rwindow = new double[slicehigh - slicelow];
 
@@ -127,18 +127,18 @@ bool filter_med_outliers(std::vector<row_t> &table,
 	filt = scipy_median_filter(table, filter_len);
 	res.resize(filt.size());
 
-	for (int i = 0; i < table.size(); i++) {
+	for (unsigned int i = 0; i < table.size(); i++) {
 		res[i] = table[i];
 		res[i].value.v = table[i].value.v - filt[i].value.v;
 	}
 
 	double iqr = NAN;
 
-	for (int k = 0; k < table.size(); k++) {
+	for (unsigned int k = 0; k < table.size(); k++) {
 		printf("%d / %d \r", k + 1, table.size());
 		if (isnan(scale)) {
-			int slicelow = std::max(0, k - ((filter_len - 1) / 2));
-			int slicehigh = std::min((int)table.size(), k + ((filter_len - 1) / 2) + 1);
+			int slicelow = std::max((unsigned int) 0, k - ((filter_len - 1) / 2));
+			int slicehigh = std::min(table.size(), k + ((filter_len - 1) / 2) + 1);
 
 			double * rwindow = new double[slicehigh - slicelow];
 
@@ -164,11 +164,11 @@ bool filter_med_outliers(std::vector<row_t> &table,
 bool filter_delta_limit(std::vector<row_t> &table, double delta_limit) {
 	reflag_table(table);
 	
-	for (int i = 0; i < table.size(); i++) {
+	for (unsigned int i = 0; i < table.size(); i++) {
 		table[i].edits = 0;
 	}
 
-	for (int i = 0; i < table.size() - 1; i++) {
+	for (unsigned int i = 0; i < table.size() - 1; i++) {
 		if (table[i].value.f || table[i + 1].value.f) continue;
 		double d = (table[i + 1].value.v - table[i].value.v) / (table[i + 1].date.numeric() - table[i].date.numeric());
 		//double d = table[i + 1].value.v - table[i].value.v;
@@ -185,7 +185,7 @@ bool filter_delta_limit(std::vector<row_t> &table, double delta_limit) {
 		}
 	}
 
-	for (int i = 0; i < table.size(); i++) {
+	for (unsigned int i = 0; i < table.size(); i++) {
 		if (table[i].edits > 0) {
 			table[i].value.v = NAN;
 			table[i].value.f = true;
@@ -203,9 +203,9 @@ void resolve_table_state(std::vector<row_t> &table){
 	if (table[0].state == 65 ||
 		table[0].state == 17) return;
 
-	for (int i = 0; i < table.size(); i++) {
+	for (unsigned int i = 0; i < table.size(); i++) {
 		printf("\t\t\t\t%d / %d\r", i + 1, table.size());
-		for (int j = i; j < table.size(); j++) {
+		for (unsigned int j = i; j < table.size(); j++) {
 			if (i == j) {
 				continue;
 			}
@@ -240,12 +240,12 @@ void resolve_table_state(std::vector<row_t> &table){
 
 int old_table_agg(std::vector<row_t> &table) {
 	std::vector<row_t> table_agg;
-	for (int i = 0; i < table.size(); i++) {
+	for (unsigned int i = 0; i < table.size(); i++) {
 		row_t r = table.at(i);
 
 		// is it already in table_agg
 		bool found = false;
-		int j = 0;
+		unsigned int j = 0;
 		for (; j < table_agg.size(); j++) {
 			if (table_agg.at(j).date.year == r.date.year && r.variable == table_agg.at(j).variable) {
 				found = true;
@@ -289,10 +289,10 @@ void period_filter(std::vector<row_t> &table, period_t period) {
 	//period_t period = { "Post_WP", YEARLY, { 1967, 10, 0 }, { 2017, 9, 31 } };
 	//period_t period = { "Pre_SMSCG", YEARLY, { 0, 0, 0 }, { 1987, 9, 31 } };
 	//period_t period = { "Post_SMSCG", YEARLY, { 1987, 10, 1 }, { 9999, 99, 99 } };
-	for (int i = 0; i < table.size(); i++) {
+	for (unsigned int i = 0; i < table.size(); i++) {
 		if (!date_in_period(table.at(i).date, period)) {
 			table.erase(table.begin() + i);
-			i = std::max(0, i - 2);
+			i = std::max((unsigned int) 0, i - 2);
 		}
 	}
 }
@@ -305,7 +305,7 @@ bool degap_table_monthly(std::vector<row_t> &table) {
 	date_t start = table.at(0).date;
 	date_t end = table.at(table.size() - 1).date;
 
-	int expected_size = ((end.year - start.year) * 12) + (end.month - start.month) /*i think*/;
+	unsigned int expected_size = ((end.year - start.year) * 12) + (end.month - start.month) /*i think*/;
 
 	if (table.size() < expected_size) {
 		printf("size difference! %d != %d\n", table.size(), expected_size);
@@ -315,7 +315,7 @@ bool degap_table_monthly(std::vector<row_t> &table) {
 	}
 
 	printf("%s -> %s\n", date_toString(table.at(0).date).c_str(), date_toString(table.at(table.size() - 1).date).c_str());
-	for (int i = 0; i < table.size() - 1; i++) {
+	for (unsigned int i = 0; i < table.size() - 1; i++) {
 		int mth_diff = (table.at(i + 1).date.year * 12 + table.at(i + 1).date.month) - 
 			(table.at(i).date.year * 12 + table.at(i).date.month);
 
@@ -344,7 +344,7 @@ bool degap_table_monthly(std::vector<row_t> &table) {
 			//printf("intercepted one! %d [%d]  %d / %d\n", i, mth_diff, table.size(), expected_size);
 			//goto hyuckin_fix_loop;
 			std::sort(table.begin(), table.end(), date_sort);
-			i = std::max(0, i - 2);
+			i = std::max((unsigned int) 0, i - 2);
 		}
 	}
 

@@ -16,12 +16,12 @@
 
 void yearly_agg(std::vector<row_t> &tbl) {
 	std::vector<row_t> table_agg;
-	for (int i = 0; i < tbl.size(); i++) {
+	for (unsigned int i = 0; i < tbl.size(); i++) {
 		row_t r = tbl.at(i);
 
 		// is it already in table_agg
 		bool found = false;
-		int j = 0;
+		unsigned int j = 0;
 		for (; j < table_agg.size(); j++) {
 			if (table_agg.at(j).date.year == r.date.year && r.variable == table_agg.at(j).variable) {
 				found = true;
@@ -33,12 +33,12 @@ void yearly_agg(std::vector<row_t> &tbl) {
 			table_agg.at(j).value.v += r.value.v;
 			table_agg.at(j).edits++;
 			tbl.erase(tbl.begin() + i);
-			i = std::max(0, i - 5);
+			i = std::max((unsigned int) 0, i - 5);
 		}
 		else {
 			table_agg.push_back(r);
 			tbl.erase(tbl.begin() + i);
-			i = std::max(0, i - 5);
+			i = std::max((unsigned int) 0, i - 5);
 		}
 	}
 
@@ -73,7 +73,7 @@ bool eval_condition(std::string condition_token, std::vector<row_t> table) {
 
 		date_t d = { yyyy, mm, dd, hh, min };
 
-		for (int i = 0; i < table.size(); i++) {
+		for (unsigned int i = 0; i < table.size(); i++) {
 			if (table.at(i).date.numeric() == d.numeric()) {
 				val = table.at(i).value;
 				break;
@@ -83,7 +83,7 @@ bool eval_condition(std::string condition_token, std::vector<row_t> table) {
 	else if (pieces.at(2) == "ID") {
 		int id = std::stoi(pieces.at(3));
 
-		for (int i = 0; i < table.size(); i++) {
+		for (unsigned int i = 0; i < table.size(); i++) {
 			if (table.at(i).id == id) {
 				val = table.at(i).value;
 			}
@@ -157,7 +157,7 @@ bool eval_condition(std::string condition_token, std::vector<row_t> table) {
 }
 
 list_t get_list_by_name(std::vector<list_t> l, std::string n) {
-	for (int i = 0; i < l.size(); i++) {
+	for (unsigned int i = 0; i < l.size(); i++) {
 		if (l.at(i).name == n) {
 			return l.at(i);
 			break;
@@ -223,9 +223,9 @@ bool execute_token(std::istream &cfg,
 			out << macrovar << ",";
 		}
 		else if (tokens.at(1) == "__LIST_C__") {
-			for (int i = 0; i < lists.size(); i++) {
+			for (unsigned int i = 0; i < lists.size(); i++) {
 				if (lists.at(i).name == tokens.at(2)) {
-					for (int j = 0; j < lists.at(i).items.size(); j++) {
+					for (unsigned int j = 0; j < lists.at(i).items.size(); j++) {
 						out << lists.at(i).items.at(j) << ",";
 					}
 					break;
@@ -267,9 +267,9 @@ bool execute_token(std::istream &cfg,
 				}
 				else if (tokens.at(3) == "E") {
 					// execute macro
-					for (int i = 0; i < macros.size(); i++) {
+					for (unsigned int i = 0; i < macros.size(); i++) {
 						if (macros.at(i).name == tokens.at(4)) {
-							for (int j = 0; j < macros.at(i).tokens.size(); j++) {
+							for (unsigned int j = 0; j < macros.at(i).tokens.size(); j++) {
 								execute_token(cfg, macros.at(i).tokens.at(j), split(macros.at(i).tokens.at(j), ':'), out, state, current_var, ltable, table, macros, cvars, periods, flags, macrovar, lists, agg_var, debug);
 							}
 						}
@@ -293,7 +293,7 @@ bool execute_token(std::istream &cfg,
 					// make table
 					int count = 0;
 					ltable.clear();
-					for (int i = 0; i < table.size(); i++) {
+					for (unsigned int i = 0; i < table.size(); i++) {
 						if (table.at(i).variable == current_var) {
 							ltable.push_back(table.at(i));
 							count++;
@@ -302,7 +302,7 @@ bool execute_token(std::istream &cfg,
 
 					if (ltable.size() == 0) {
 						if (debug) printf("S:O:V returned 0 records, looking in custom vars \n");
-						int idx = 0;
+						unsigned int idx = 0;
 						bool found = false;
 
 						for (; idx < cvars.size(); idx++) {
@@ -325,7 +325,7 @@ bool execute_token(std::istream &cfg,
 					// make table
 					int count = 0;
 					ltable.clear();
-					for (int i = 0; i < table.size(); i++) {
+					for (unsigned int i = 0; i < table.size(); i++) {
 						if (table.at(i).variable == current_var) {
 							ltable.push_back(table.at(i));
 							count++;
@@ -334,7 +334,7 @@ bool execute_token(std::istream &cfg,
 
 					if (ltable.size() == 0) {
 						if (debug) printf("S:O:V returned 0 records, looking in custom vars \n");
-						int idx = 0;
+						unsigned int idx = 0;
 						bool found = false;
 
 						for (; idx < cvars.size(); idx++) {
@@ -368,7 +368,7 @@ bool execute_token(std::istream &cfg,
 
 				out.open(tokens.at(3));
 				if (!out.is_open()) {
-					printf("UNABLE TO REOPEN FILE [%s]! OUTPUT IS IN UNDEFINED STATE!\n", tokens.at(3));
+					printf("UNABLE TO REOPEN FILE [%s]! OUTPUT IS IN UNDEFINED STATE!\n", tokens.at(3).c_str());
 				}
 			}
 			else {
@@ -457,7 +457,7 @@ bool execute_token(std::istream &cfg,
 					if (debug) printf("list size: %d\n", lists.size());
 				}
 				else if (tokens.at(3) == "ADD") {
-					int i = 0;
+					unsigned int i = 0;
 					for (; i < lists.size(); i++) {
 						if (lists.at(i).name == tokens.at(4)) {
 							lists.at(i).items.push_back(tokens.at(5));
@@ -468,7 +468,7 @@ bool execute_token(std::istream &cfg,
 					list_t l;
 					l.name = tokens.at(4);
 
-					int i = 0;
+					unsigned int i = 0;
 					bool found = false;
 					for (; i < cvars.size(); i++) {
 						if (cvars.at(i).name == tokens.at(5)) {
@@ -483,10 +483,10 @@ bool execute_token(std::istream &cfg,
 					list_t l;
 					l.name = tokens.at(4);
 
-					for (int i = 0; i < table.size(); i++) {
+					for (unsigned int i = 0; i < table.size(); i++) {
 						bool f = false;
 
-						for (int j = 0; j < l.items.size(); j++) {
+						for (unsigned int j = 0; j < l.items.size(); j++) {
 							if (l.items.at(j) == table.at(i).variable) {
 								f = true;
 							}
@@ -503,8 +503,8 @@ bool execute_token(std::istream &cfg,
 					//std::copy(variables.begin(), variables.end(), std::back_inserter(l.items));
 				}
 				else if (tokens.at(3) == "MERGE") {
-					int i = 0;
-					int j = 0;
+					unsigned int i = 0;
+					unsigned int j = 0;
 					bool foundi = false;
 					bool foundj = false;
 					for (; i < lists.size(); i++) {
@@ -527,7 +527,7 @@ bool execute_token(std::istream &cfg,
 					lists.at(i).items.insert(lists.at(i).items.end(), lists.at(j).items.begin(), lists.at(j).items.end());
 				}
 				else if (tokens.at(3) == "ADDALL") {
-					int idx = 0;
+					unsigned int idx = 0;
 					bool found = false;
 					for (; idx < lists.size(); idx++) {
 						if (lists.at(idx).name == tokens.at(4)) {
@@ -537,10 +537,10 @@ bool execute_token(std::istream &cfg,
 					}
 
 					std::vector<std::string> variables;
-					for (int i = 0; i < table.size(); i++) {
+					for (unsigned int i = 0; i < table.size(); i++) {
 						bool f = false;
 
-						for (int j = 0; j < variables.size(); j++) {
+						for (unsigned int j = 0; j < variables.size(); j++) {
 							if (variables.at(j) == table.at(i).variable) {
 								f = true;
 								break;
@@ -552,14 +552,14 @@ bool execute_token(std::istream &cfg,
 						}
 					}
 
-					for (int m = 0; m < variables.size(); m++) {
+					for (unsigned int m = 0; m < variables.size(); m++) {
 						lists.at(idx).items.push_back(variables.at(m));
 					}
 
 					if (debug) printf("Scanned %d items into list %s at %d\n", lists.at(idx).items.size(), lists.at(idx).name.c_str(), idx);
 				}
 				else if (tokens.at(3) == "SCAN") {
-					int i = 0;
+					unsigned int i = 0;
 					bool found = false;
 					for (; i < lists.size(); i++) {
 						if (lists.at(i).name == tokens.at(4)) {
@@ -601,7 +601,7 @@ bool execute_token(std::istream &cfg,
 					// reset table
 					//int count = 0;
 					ltable.clear();
-					for (int i = 0; i < table.size(); i++) {
+					for (unsigned int i = 0; i < table.size(); i++) {
 						if (table.at(i).variable == current_var) {
 							ltable.push_back(table.at(i));
 							//count++;
@@ -609,7 +609,7 @@ bool execute_token(std::istream &cfg,
 					}
 				}
 
-				int idx = 0;
+				unsigned int idx = 0;
 				bool found = false;
 				for (; idx < periods.size(); idx++) {
 					if (periods.at(idx).name == tokens.at(3)) {
@@ -620,17 +620,17 @@ bool execute_token(std::istream &cfg,
 
 				if (found) {
 					if (debug) printf("S:F:P found %s at %d\n", tokens.at(3).c_str(), idx);
-					for (int i = 0; i < ltable.size(); i++) {
+					for (unsigned int i = 0; i < ltable.size(); i++) {
 						if (date_as_day(ltable.at(i).date) > date_as_day(periods.at(idx).end) ||
 							date_as_day(ltable.at(i).date) < date_as_day(periods.at(idx).start)) {
 							ltable.at(i).id = -100;
 						}
 					}
 
-					for (int i = 0; i < ltable.size(); i++) {
+					for (unsigned int i = 0; i < ltable.size(); i++) {
 						if (ltable.at(i).id == -100) {
 							ltable.erase(ltable.begin() + i);
-							i = std::max(0, i - 2);
+							i = std::max((unsigned int) 0, i - 2);
 						}
 					}
 				}
@@ -640,7 +640,7 @@ bool execute_token(std::istream &cfg,
 				// make table
 				int count = 0;
 				ltable.clear();
-				for (int i = 0; i < table.size(); i++) {
+				for (unsigned int i = 0; i < table.size(); i++) {
 					if (table.at(i).variable == current_var) {
 						ltable.push_back(table.at(i));
 						count++;
@@ -649,7 +649,7 @@ bool execute_token(std::istream &cfg,
 
 				if (ltable.size() == 0) {
 					if (debug) printf("S:O:V returned 0 records, looking in custom vars \n");
-					int idx = 0;
+					unsigned int idx = 0;
 					bool found = false;
 
 					for (; idx < cvars.size(); idx++) {
@@ -685,7 +685,7 @@ bool execute_token(std::istream &cfg,
 				// make table
 				int count = 0;
 				ltable.clear();
-				for (int i = 0; i < table.size(); i++) {
+				for (unsigned int i = 0; i < table.size(); i++) {
 					if (table.at(i).variable == current_var) {
 						ltable.push_back(table.at(i));
 						count++;
@@ -694,7 +694,7 @@ bool execute_token(std::istream &cfg,
 
 				if (ltable.size() == 0) {
 					if (debug) printf("S:O:V returned 0 records, looking in custom vars \n");
-					int idx = 0;
+					unsigned int idx = 0;
 					bool found = false;
 
 					for (; idx < cvars.size(); idx++) {
@@ -766,7 +766,7 @@ bool execute_token(std::istream &cfg,
 					}
 					else if (tokens.at(4) == "mtau") {
 						std::vector<row_t> atable;
-						for (int i = 0; i < table.size(); i++) {
+						for (unsigned int i = 0; i < table.size(); i++) {
 							if (table.at(i).variable == tokens.at(5)) {
 								atable.push_back(table.at(i));
 							}
@@ -807,7 +807,7 @@ bool execute_token(std::istream &cfg,
 				// make table
 				int count = 0;
 				ltable.clear();
-				for (int i = 0; i < table.size(); i++) {
+				for (unsigned int i = 0; i < table.size(); i++) {
 					if (table.at(i).variable == current_var) {
 						ltable.push_back(table.at(i));
 						count++;
@@ -816,7 +816,7 @@ bool execute_token(std::istream &cfg,
 
 				if (ltable.size() == 0) {
 					if (debug) printf("scanning cvars . . .\n");
-					for (int i = 0; i < cvars.size(); i++) {
+					for (unsigned int i = 0; i < cvars.size(); i++) {
 						if (cvars.at(i).name == current_var) {
 							filter_by_variable(table, ltable, cvars.at(i).pieces, " ", false);
 							break;
@@ -825,7 +825,7 @@ bool execute_token(std::istream &cfg,
 				}
 
 				std::vector<row_t> atable;
-				for (int i = 0; i < table.size(); i++) {
+				for (unsigned int i = 0; i < table.size(); i++) {
 					if (table.at(i).variable == addl_var) {
 						atable.push_back(table.at(i));
 					}
@@ -833,7 +833,7 @@ bool execute_token(std::istream &cfg,
 
 				if (atable.size() == 0) {
 					if (debug) printf("scanning cvars . . . .\n");
-					for (int i = 0; i < cvars.size(); i++) {
+					for (unsigned int i = 0; i < cvars.size(); i++) {
 						if (cvars.at(i).name == current_var) {
 							filter_by_variable(table, atable, cvars.at(i).pieces, " ", false);
 							break;
@@ -849,7 +849,7 @@ bool execute_token(std::istream &cfg,
 				// rebuild table
 				int count = 0;
 				ltable.clear();
-				for (int i = 0; i < table.size(); i++) {
+				for (unsigned int i = 0; i < table.size(); i++) {
 					if (table.at(i).variable == current_var) {
 						ltable.push_back(table.at(i));
 						count++;
@@ -860,14 +860,14 @@ bool execute_token(std::istream &cfg,
 				std::string addl2_var = tokens.at(4);
 
 				std::vector<row_t> atable;
-				for (int i = 0; i < table.size(); i++) {
+				for (unsigned int i = 0; i < table.size(); i++) {
 					if (table.at(i).variable == addl_var) {
 						atable.push_back(table.at(i));
 					}
 				}
 
 				std::vector<row_t> btable;
-				for (int i = 0; i < table.size(); i++) {
+				for (unsigned int i = 0; i < table.size(); i++) {
 					if (table.at(i).variable == addl2_var) {
 						btable.push_back(table.at(i));
 					}
@@ -912,7 +912,7 @@ bool execute_token(std::istream &cfg,
 			macro_t m;
 			bool found = false;
 
-			for (int i = 0; i < macros.size(); i++) {
+			for (unsigned int i = 0; i < macros.size(); i++) {
 				if (macros.at(i).name == tokens.at(4)) {
 					m = macros.at(i);
 					found = true;
@@ -930,13 +930,13 @@ bool execute_token(std::istream &cfg,
 				__var__stack.push_back(current_var);
 				__mvr__stack.push_back(macrovar);
 
-				for (int i = 0; i < l1.items.size(); i++) {
-					for (int j = 0; j < l2.items.size(); j++) {
+				for (unsigned int i = 0; i < l1.items.size(); i++) {
+					for (unsigned int j = 0; j < l2.items.size(); j++) {
 						current_var = l2.items.at(j);
 						macrovar = l1.items.at(i);
 
 						// execute macro
-						for (int k = 0; k < m.tokens.size(); k++) {
+						for (unsigned int k = 0; k < m.tokens.size(); k++) {
 							execute_token(cfg, m.tokens.at(k), split(m.tokens.at(k), ':'), out, state, current_var, ltable, table, macros, cvars, periods, flags, macrovar, lists, agg_var, debug);
 						}
 					}
@@ -958,7 +958,7 @@ bool execute_token(std::istream &cfg,
 			macro_t m;
 			bool found = false;
 
-			for (int i = 0; i < macros.size(); i++) {
+			for (unsigned int i = 0; i < macros.size(); i++) {
 				if (macros.at(i).name == tokens.at(4)) {
 					m = macros.at(i);
 					found = true;
@@ -977,19 +977,19 @@ bool execute_token(std::istream &cfg,
 				__mvr__stack.push_back(macrovar);
 
 				out << ",";
-				for (int j = 0; j < l2.items.size(); j++) {
+				for (unsigned int j = 0; j < l2.items.size(); j++) {
 					out << l2.items.at(j) << ",";
 				}
 				out << std::endl;
 
-				for (int i = 0; i < l1.items.size(); i++) {
+				for (unsigned int i = 0; i < l1.items.size(); i++) {
 					out << l1.items.at(i) << ",";
-					for (int j = 0; j < l2.items.size(); j++) {
+					for (unsigned int j = 0; j < l2.items.size(); j++) {
 						current_var = l2.items.at(j);
 						macrovar = l1.items.at(i);
 
 						// execute macro
-						for (int k = 0; k < m.tokens.size(); k++) {
+						for (unsigned int k = 0; k < m.tokens.size(); k++) {
 							execute_token(cfg, m.tokens.at(k), split(m.tokens.at(k), ':'), out, state, current_var, ltable, table, macros, cvars, periods, flags, macrovar, lists, agg_var, debug);
 						}
 					}
@@ -1004,7 +1004,7 @@ bool execute_token(std::istream &cfg,
 		}
 		else if (tokens.at(1) == "EXECUTE") {
 			bool found = false;
-			int idx = 0;
+			unsigned int idx = 0;
 
 			for (; idx < macros.size(); idx++) {
 				if (macros.at(idx).name == tokens.at(2)) {
@@ -1017,7 +1017,7 @@ bool execute_token(std::istream &cfg,
 				if (debug) printf("Macro %s does not exist", tokens.at(2).c_str());
 			}
 			else {
-				for (int index = 0; index < macros.at(idx).tokens.size(); index++) {
+				for (unsigned int index = 0; index < macros.at(idx).tokens.size(); index++) {
 					std::vector<std::string> tkns;
 					tkns.clear();
 					tkns = split(macros.at(idx).tokens.at(index), ':');
@@ -1028,7 +1028,7 @@ bool execute_token(std::istream &cfg,
 			}
 		}
 		else if (tokens.at(1) == "LOOPVAR") {
-			int index = 0;
+			unsigned int index = 0;
 			bool found = false;
 			for (; index < lists.size(); index++) {
 				if (lists.at(index).name == tokens.at(3)) {
@@ -1037,7 +1037,7 @@ bool execute_token(std::istream &cfg,
 				}
 			}
 
-			int mindex = 0;
+			unsigned int mindex = 0;
 			bool foundm = false;
 			for (; mindex < macros.size(); mindex++) {
 				if (macros.at(mindex).name == tokens.at(2)) {
@@ -1046,44 +1046,11 @@ bool execute_token(std::istream &cfg,
 				}
 			}
 
-			for (int i = 0; i < lists.at(index).items.size(); i++) {
+			for (unsigned int i = 0; i < lists.at(index).items.size(); i++) {
 				if (debug) printf("Executing list cycle %d / %d\n", i + 1, lists.at(index).items.size());
 				macrovar = lists.at(index).items.at(i);
 				//execute macro
-				for (int j = 0; j < macros.at(mindex).tokens.size(); j++) {
-					std::vector<std::string> tkns;
-					tkns.clear();
-					tkns = split(macros.at(mindex).tokens.at(j), ':');
-					if (debug) printf("    Executing token %s\n", macros.at(mindex).tokens.at(j).c_str());
-					execute_token(cfg, macros.at(mindex).tokens.at(j), tkns, out, state, current_var, ltable, table, macros, cvars, periods, flags, macrovar, lists, agg_var, debug);
-				}
-			}
-		}
-		else if (tokens.at(1) == "LOOPAGG") {
-			// TODO - FINISH THIS
-			int index = 0;
-			bool found = false;
-			for (; index < lists.size(); index++) {
-				if (lists.at(index).name == tokens.at(3)) {
-					found = true;
-					break;
-				}
-			}
-
-			int mindex = 0;
-			bool foundm = false;
-			for (; mindex < macros.size(); mindex++) {
-				if (macros.at(mindex).name == tokens.at(2)) {
-					foundm = true;
-					break;
-				}
-			}
-
-			for (int i = 0; i < lists.at(index).items.size(); i++) {
-				if (debug) printf("Executing list cycle %d / %d\n", i + 1, lists.at(index).items.size());
-				macrovar = lists.at(index).items.at(i);
-				//execute macro
-				for (int j = 0; j < macros.at(mindex).tokens.size(); j++) {
+				for (unsigned int j = 0; j < macros.at(mindex).tokens.size(); j++) {
 					std::vector<std::string> tkns;
 					tkns.clear();
 					tkns = split(macros.at(mindex).tokens.at(j), ':');
@@ -1099,7 +1066,7 @@ bool execute_token(std::istream &cfg,
 
 			m.name = tokens.at(2);
 
-			for (int i = 0; i < std::stod(tokens.at(3)); i++) {
+			for (unsigned int i = 0; i < std::stod(tokens.at(3)); i++) {
 				std::string s;
 				cfg >> s;
 				m.tokens.push_back(s);
