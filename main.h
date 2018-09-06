@@ -251,6 +251,17 @@ struct interpreter_memblock_t {
 	std::vector<std::string> variables;
 };
 
+struct name_pair_t {
+	std::string name;
+	double value;
+};
+
+struct wide_table_t {
+	int id;
+	date_t date;
+	std::vector<name_pair_t> data;
+};
+
 #define F_CORRECT_TIES 0
 #define F_MAKE_CSV 1 // leave at 1
 #define F_PRINT_VARS 1

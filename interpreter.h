@@ -14,6 +14,8 @@ bool imb_init(interpreter_memblock_t &imb);
 */
 bool imb_update_var_table(interpreter_memblock_t &imb);
 
+void _imb_execute_legacy_int(interpreter_memblock_t &imb, token_t t);
+
 /*
 	sets up internal table of imb and creates cvar tables which are also saved to the table
 	exact prodecure is:

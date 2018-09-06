@@ -380,24 +380,28 @@ bool imb_enumerate_file(interpreter_memblock_t &imb, std::ifstream &i, std::vect
 	return true;
 }
 
+void _imb_execute_legacy_int(interpreter_memblock_t &imb, token_t t) {
+	try {
+		int id = std::stoi(t.associated.at(1));
+		switch (id) {
+		case 0:
+			execute_main_analysis_correlate(imb.table, imb.variables, std::vector<custom_var_t>());
+			break;
+		default:
+			break;
+		}
+	}
+	catch (std::exception &e) {
+		printf("Failed to execute internal legacy macro\n    [%s]", e.what());
+	}
+}
+
 bool imb_execute_token(interpreter_memblock_t &imb, token_t t) {
 	switch (t.token) {
 	case EMPTY:
 		printf("Skipped empty token\n"); break;
 	case __LEGACY_INT:
-		try {
-			int id = std::stoi(t.associated.at(1));
-			switch (id) {
-			case 0:
-				execute_main_analysis_correlate(imb.table, imb.variables, std::vector<custom_var_t>());
-				break;
-			default:
-				break;
-			}
-		}
-		catch (std::exception &e) {
-			printf("Failed to execute internal legacy macro\n    [%s]", e.what());
-		}
+		_imb_execute_legacy_int(imb, t);
 		break;
 	default:
 		printf("Behavior for token %d is undefined\n", t.token);
@@ -433,6 +437,14 @@ bool imb_execute_script(interpreter_memblock_t &imb, std::vector<token_t> toks) 
 	return true;
 }
 
+bool imb_edit_flags(interpreter_memblock_t &imb, std::string s) {
+
+}
+
+bool imb_alter_db_flags(interpreter_memblock_t &imb, std::string s) {
+
+}
+
 bool imb_execute_script(interpreter_memblock_t &imb, std::ifstream &i) {
 	std::string s;
 	std::vector<token_t> toks;
@@ -445,9 +457,47 @@ bool imb_execute_script(interpreter_memblock_t &imb, std::ifstream &i) {
 	i >> s;
 	if (s == "~DBSyft2") {
 		// TODO Handle header and pre-script here
+		i >> s;
+		if (s != "~MODE") {
+			printf("Unable to read script for executing\n    Header is malformed (1)\n");
+			return false;
+		}
+
+		i >> s;
+		int num_opts = -1;
+		try {
+			num_opts = std::stoi(s);
+		}
+		catch (std::exception &e) {
+			printf("Unable to read script for executing\n    Header is malformed (2)\n");
+			return false;
+		}
+
+		for (int idx = 0; idx < num_opts; idx++) {
+			i >> s;
+			imb_edit_flags(imb, s);
+		}
+
+		i >> s;
+		if (s != ".db") {
+			printf("Encountered malformed database header while preparing script\n");
+			return false;
+		}
+
+		std::string fname;
+		int num_db_set = -1;
+		i >> fname;
+		i >> num_db_set;
+		for (int idx = 0; idx < num_db_set; idx++) {
+			i >> s;
+			imb_alter_db_flags(imb, s);
+		}
+
+		// TODO : FINISH THIS
+
 		imb_enumerate_file(imb, i, toks);
 	}
-	else if (s == "DBSYFTENUMSRP") {
+	else if (s == "DBSYFTENUM") {
 		// TODO Handle header and pre-script here
 		imb_open_enumerated_file(imb, i, toks);
 	}

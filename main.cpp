@@ -47,7 +47,7 @@ int main() {
 	std::vector<custom_var_t> cvars;
 //	char tmp[255];
 	int skipped = 0;
-	std::string __table_name__ = "_compile.stxt";
+	std::string __table_name__ = "_compile1.stxt";
 	int __table_suffix__ = rand() % 1000;
 
 	printf("Table Analytics Engine v2.1.5 \n");
@@ -248,6 +248,113 @@ int main() {
 	for (unsigned int i = 0; i < variables.size(); i++) {
 		std::ofstream ofile;
 		std::string fname = "ts\\" + variables.at(i) + ".csv";
+		ofile.open(fname);
+		if (!ofile.is_open()) {
+			printf("Could not open %s\n", fname.c_str());
+			return -234;
+		}
+
+		ofile << "'ID,DATE,MTH,YEAR,VAR,VAL,UNITS" << std::endl;
+		for (unsigned int j = 0; j < table.size(); j++) {
+			if (table.at(j).variable == variables.at(i)) {
+				ofile << table.at(j).id << ",";
+				ofile << date_toString(table.at(j).date).c_str() << ",";
+				ofile << table.at(j).date.month << ",";
+				ofile << table.at(j).date.year << ",";
+				ofile << table.at(j).variable << ",";
+				//ofile << ((table.at(j).value.f) ? NAN : table.at(j).value.v) << ",";
+				if (table.at(j).value.f) {
+					ofile << "NAN,";
+				}
+				else {
+					ofile << table.at(j).value.v << ",";
+				}
+				ofile << table.at(j).units << std::endl;
+			}
+		}
+		ofile.close();
+	}
+
+
+	for (unsigned int i = 0; i < cvars.size(); i++) {
+		std::ofstream ofile;
+		std::string fname = "ts\\" + cvars.at(i).name + ".csv";
+		ofile.open(fname);
+		if (!ofile.is_open()) {
+			printf("Could not open %s\n", fname.c_str());
+			return -234;
+		}
+
+		std::vector<std::string> n = cvars.at(i).pieces;
+		std::vector<row_t> t;
+		filter_by_variable(table, t, n, " ", true);
+
+		for (unsigned int j = 0; j < t.size(); j++) {
+			ofile << t.at(j).id << ",";
+			ofile << date_toString(t.at(j).date).c_str() << ",";
+			ofile << t.at(j).date.month << ",";
+			ofile << t.at(j).date.year << ",";
+			ofile << t.at(j).variable << ",";
+			//ofile << ((t.at(j).value.f) ? NAN : t.at(j).value.v) << ",";
+			if (t.at(j).value.f) {
+				ofile << "NAN,";
+			}
+			else {
+				ofile << t.at(j).value.v << ",";
+			}
+			ofile << t.at(j).units << std::endl;
+		}
+
+		ofile.close();
+	}
+#endif
+
+	std::ofstream ofile("bifdf.csv");
+	std::vector<row_t> _8r;
+	std::vector<row_t> _sal;
+	filter_by_variable(table, _8r, cvars.at(2).pieces, "8RIVER", true);
+	filter_by_variable(table, _sal, cvars.at(3).pieces, "SALINITY", true);
+	for (int j = 0; j < table.size(); j++) {
+		ofile << table.at(j).id << ",";
+		ofile << date_toString(table.at(j).date).c_str() << ",";
+		ofile << table.at(j).date.month << ",";
+		ofile << table.at(j).date.year << ",";
+		ofile << table.at(j).variable << ",";
+		if (table.at(j).value.f) {
+			ofile << "NAN,";
+		}
+		else {
+			ofile << table.at(j).value.v << ",";
+		}
+		
+		for (row_t r : _8r) {
+			if (r.date == table[j].date) {
+				ofile << r.value.v << ",";
+				break;
+			}
+		}
+		for (row_t r : _sal) {
+			if (r.date == table[j].date) {
+				ofile << r.value.v << ",";
+				break;
+			}
+		}
+		 
+		ofile << table[j].units << std::endl;
+	}
+	ofile.close();
+
+	print_wide_table(table);
+
+	printf("Normalizing ...");
+	table = normalize_table(table, variables);
+	printf("done\n");
+
+#if F_GEN_TS_ALL == 1
+	CreateDirectory(L".\\ts_n", NULL);
+	for (unsigned int i = 0; i < variables.size(); i++) {
+		std::ofstream ofile;
+		std::string fname = "ts_n\\" + variables.at(i) + ".csv";
 		ofile.open(fname);
 		if (!ofile.is_open()) {
 			printf("Could not open %s\n", fname.c_str());

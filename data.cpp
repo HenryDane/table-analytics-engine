@@ -421,3 +421,29 @@ int read_db(std::ifstream &data, std::vector<row_t> &table) {
 
 	return skipped;
 }
+
+/*
+	expects a table with 1+ variables
+*/
+std::vector<row_t> normalize_table(std::vector<row_t> t, std::vector<std::string> vars) {
+	std::vector<row_t> nt;
+
+	for (std::string s : vars) {
+		std::vector<row_t> vt;
+
+		for (row_t r : t)
+			if (r.variable == s)
+				vt.push_back(r);
+
+		double min = min_table(vt);
+		double max = max_table(vt);
+
+		//for (row_t r : vt)
+		for (unsigned int i = 0; i < vt.size(); i++)
+			vt[i].value.v = (vt[i].value.v - min) / (max - min);
+
+		nt.insert(nt.begin(), vt.begin(), vt.end());
+	}
+	
+	return nt;
+}

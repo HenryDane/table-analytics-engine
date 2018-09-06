@@ -41,7 +41,7 @@ bool is_equal(date_t &a, date_t &b);
 date_t min_table_date(std::vector<row_t> &table);
 date_t max_table_date(std::vector<row_t> &table);
 double min_table(std::vector<row_t> &table);
-double min_table(std::vector<row_t> &table);
+double max_table(std::vector<row_t> &table);
 date_t min_date(date_t &a, date_t &b);
 date_t max_date(date_t &a, date_t &b);
 
@@ -53,3 +53,5 @@ int DeleteDirectory(const std::wstring &refcstrRootDirectory, bool bDeleteSubdir
 
 // s_double_t functions
 s_double_t safe_add(s_double_t &a, s_double_t &b);
+
+void print_wide_table(std::vector<row_t> table);

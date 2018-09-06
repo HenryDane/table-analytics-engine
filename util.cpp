@@ -723,67 +723,67 @@ double clip_date(std::vector<row_t> &tablea, std::vector<row_t> &tableb, bool d)
 }
 
 void gen_plot(std::vector<row_t> t) {
-	int randint = rand() % 10000;
+int randint = rand() % 10000;
 
-	// generate tmp file
-	std::ofstream f;
-	f.open(t.at(0).variable + std::to_string(randint) + ".dat");
-	if (!f.is_open()) {
-		printf("could not open\n");
-		return;
+// generate tmp file
+std::ofstream f;
+f.open(t.at(0).variable + std::to_string(randint) + ".dat");
+if (!f.is_open()) {
+	printf("could not open\n");
+	return;
+}
+
+// write tmp data
+f << "# tmp_plot.dat" << std::endl;
+for (unsigned int i = 0; i < t.size(); i++) {
+	if (!t[i].value.f) {
+		f << std::setprecision(std::numeric_limits<long double>::digits10);
+		f << t[i].date.toString() << " " << t[i].value.v << " " << std::endl;
 	}
-
-	// write tmp data
-	f << "# tmp_plot.dat" << std::endl;
-	for (unsigned int i = 0; i < t.size(); i++) {
-		if (!t[i].value.f) {
-			f << std::setprecision(std::numeric_limits<long double>::digits10);
-			f << t[i].date.toString() << " " << t[i].value.v << " " << std::endl;
-		}
-		else {
-			f << std::endl;
-		}
+	else {
+		f << std::endl;
 	}
-	f << std::endl;
-	f.close();
-	
-	// generate tmp plot file
-	f.open(t.at(0).variable + std::to_string(randint) + ".plot");
-	if (!f.is_open()) {
-		printf("could not open\n");
-		return;
-	}
+}
+f << std::endl;
+f.close();
 
-	// write tmp plot file
-	f << "# set terminal svg size 1000 1000 dynamic" << std::endl;
-	f << "# set output '" << t.at(0).variable << std::to_string(randint) << ".svg'" << std::endl;
-	f << "set style line 1 \\" << std::endl;
-	f << "    linecolor rgb '#0060ad' \\" << std::endl;
-	f << "    linetype 1 linewidth 2 \\" << std::endl;
-	f << "    pointtype 7 pointsize .3" << std::endl;
-	f << std::endl;
-	f << "set xdata time" << std::endl;
-	f << "set timefmt '%m/%d/%Y %H:%M'" << std::endl;
-	f << "set format x '%m/%d/%Y %H:%M'" << std::endl;
-	f << "set xrange ['" << min_table_date(t).toString() << "':'" << max_table_date(t).toString() << "']" << std::endl;
-	f << std::endl;
-	f << "set title \"" << t.at(0).variable << "\"" << std::endl;
-	f << std::endl;
-	f << "plot '" << t.at(0).variable << std::to_string(randint) << ".dat' using 1:3 with linespoints linestyle 1" << std::endl;
-	//f << "pause -1 \"Press [Return] to continue\"" << std::endl;
-	f << "pause mouse" << std::endl;
-	f << std::endl;
-	f.close();
+// generate tmp plot file
+f.open(t.at(0).variable + std::to_string(randint) + ".plot");
+if (!f.is_open()) {
+	printf("could not open\n");
+	return;
+}
 
-	// call gnuplot
-	std::string p = std::string(GNUPLOT_PATH) + " " + t.at(0).variable + std::to_string(randint) + ".plot";
-	system(p.c_str());
+// write tmp plot file
+f << "# set terminal svg size 1000 1000 dynamic" << std::endl;
+f << "# set output '" << t.at(0).variable << std::to_string(randint) << ".svg'" << std::endl;
+f << "set style line 1 \\" << std::endl;
+f << "    linecolor rgb '#0060ad' \\" << std::endl;
+f << "    linetype 1 linewidth 2 \\" << std::endl;
+f << "    pointtype 7 pointsize .3" << std::endl;
+f << std::endl;
+f << "set xdata time" << std::endl;
+f << "set timefmt '%m/%d/%Y %H:%M'" << std::endl;
+f << "set format x '%m/%d/%Y %H:%M'" << std::endl;
+f << "set xrange ['" << min_table_date(t).toString() << "':'" << max_table_date(t).toString() << "']" << std::endl;
+f << std::endl;
+f << "set title \"" << t.at(0).variable << "\"" << std::endl;
+f << std::endl;
+f << "plot '" << t.at(0).variable << std::to_string(randint) << ".dat' using 1:3 with linespoints linestyle 1" << std::endl;
+//f << "pause -1 \"Press [Return] to continue\"" << std::endl;
+f << "pause mouse" << std::endl;
+f << std::endl;
+f.close();
 
-	// clean up files
-	std::string s = t.at(0).variable + std::to_string(randint) + ".plot";
-	remove(s.c_str());
-	s = t.at(0).variable + std::to_string(randint) + ".dat";
-	remove(s.c_str());
+// call gnuplot
+std::string p = std::string(GNUPLOT_PATH) + " " + t.at(0).variable + std::to_string(randint) + ".plot";
+system(p.c_str());
+
+// clean up files
+std::string s = t.at(0).variable + std::to_string(randint) + ".plot";
+remove(s.c_str());
+s = t.at(0).variable + std::to_string(randint) + ".dat";
+remove(s.c_str());
 }
 
 /*
@@ -822,3 +822,85 @@ void build_custom_vars(std::vector<row_t> &t, std::vector<custom_var_t> cvars) {
 	for (row_t r : result)
 		t.push_back(r);
 }*/
+
+bool name_pair_sort(name_pair_t left, name_pair_t right) {
+	return left.name.compare(right.name);
+}
+
+void print_wide_table(std::vector<row_t> table){
+	std::ofstream ooo("ooooo.csv");
+	
+	// list of all dates in the list
+	std::vector<date_t> dates;
+	
+	for (row_t r : table) {
+		if (r.date.year < 1900) continue;
+		bool found = false;
+		for (date_t d : dates) {
+			if (d == r.date) {
+				found = true;
+				break;
+			}
+		}
+		if (!found) {
+			dates.push_back(r.date);
+		}
+	}
+
+	printf("SIZE -> %d\n", dates.size());
+
+	std::vector<wide_table_t> wtable;
+
+	int idx = 0;
+	for (date_t d : dates) {
+		if (d.year < 1900) continue;
+		wide_table_t wt;
+		wt.id = idx++;
+		wt.date = d;
+
+		for (row_t r : table) {
+			if (/*r.date == d*/ r.date.year == d.year &&
+				r.date.month == d.month &&
+				r.date.day == d.day) {
+				// row is correct for this day, is it already in there for some reason?
+				bool found = false;
+				for (name_pair_t np : wt.data) {
+					if (np.name == r.variable) {
+						found = true;
+					}
+				}
+
+				// its not in the list already
+				if (!found) {
+					name_pair_t npt;
+					npt.name = r.variable;
+					npt.value = r.value.v;
+					wt.data.push_back(npt);
+				}
+			}
+		}
+
+		wtable.push_back(wt);
+	}
+
+	for (int i = 0; i < wtable.size(); i++) {
+		std::sort(wtable[i].data.begin(), wtable[i].data.end(), name_pair_sort);
+	}
+
+	ooo << "DATE,";
+	for (name_pair_t npt : wtable[0].data) {
+		ooo << npt.name << ",";
+	}
+	ooo << std::endl;
+	
+	for (int i = 0; i < wtable.size(); i++) {
+		ooo << wtable[i].date.toString() << ",";
+		for (name_pair_t npt : wtable[0].data) {
+			ooo << (isnan(npt.value) ? std::string("NAN") : std::to_string(npt.value)) << ",";
+		}
+		ooo << std::endl;
+	}
+
+
+	ooo.close();
+}
