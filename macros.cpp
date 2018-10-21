@@ -107,7 +107,7 @@ int execute_main_analysis(std::vector<row_t> table, std::vector<std::string> var
 #if F_MAKE_CSV == 0
 		sprintf(tmp, "Year %f %f %f[%s/mth] %f %f[%s/mth] %f[%s] %s %f %f %f %f %f %f\n", mkrt.z, mkrt.p, tsrt1.slope, vtable.at(0).units.c_str(), tsrt1.r_u - tsrt1.r_l, lrrt1.m, vtable.at(0).units.c_str(), lrrt1.b, vtable.at(0).units.c_str(), mkrt.trend.c_str(), ggt_v, mean(vtable), std_dev(vtable), coef_var(vtable), median(vtable));
 		results << tmp;
-#else 
+#else
 		sprintf(tmp, "Year, %f, %f, %f %s/mth, %f, %f %s/mth, %f %s, %s, %f, %f, %f, %f, %f, %f\n", mkrt.z, mkrt.p, tsrt1.slope, vtable.at(0).units.c_str(), tsrt1.r_u - tsrt1.r_l, lrrt1.m, vtable.at(0).units.c_str(), lrrt1.b, vtable.at(0).units.c_str(), mkrt.trend.c_str(), ggt_v, mean(vtable), std_dev(vtable), coef_var(vtable), median(vtable), ndo_v);
 		results << tmp;
 #endif
@@ -146,10 +146,10 @@ int execute_main_analysis(std::vector<row_t> table, std::vector<std::string> var
 			double ggt_v1 = correlation(mtable, ggt_m);
 			double ndo_v1 = correlation(mtable, ndo_m);
 
-#if F_MAKE_CSV == 0	
+#if F_MAKE_CSV == 0
 			sprintf(tmp, "%s %f %f %f[%s/mth] %f %f[%s/mth] %f[%s] %s %f %f %f %f %f %f\n", months[j].c_str(), mkrt1.z, mkrt1.p, tsrt.slope, mtable.at(0).units.c_str(), tsrt.r_u - tsrt.r_l, lrrt.m, mtable.at(0).units.c_str(), lrrt.b, mtable.at(0).units.c_str(), mkrt.trend.c_str(), ggt_v1, mean(mtable), std_dev(mtable), coef_var(mtable), median(mtable), ndo_v1);
 			results << tmp;
-#else 
+#else
 			sprintf(tmp, "%s, %f, %f, %f %s/yr, %f, %f %s/yr, %f %s, %s, %f, %f, %f, %f, %f, %f\n", months[j].c_str(), mkrt1.z, mkrt1.p, tsrt.slope, mtable.at(0).units.c_str(), tsrt.r_u - tsrt.r_l, lrrt.m, mtable.at(0).units.c_str(), lrrt.b, mtable.at(0).units.c_str(), mkrt.trend.c_str(), ggt_v1, mean(mtable), std_dev(mtable), coef_var(mtable), median(mtable), ndo_v1);
 			results << tmp;
 #endif
@@ -191,7 +191,7 @@ int execute_main_analysis(std::vector<row_t> table, std::vector<std::string> var
 	for (unsigned int i = 0; i < variables.size(); i++) {
 #if F_DO_MONTHS == 1
 		printf("%d / %d\r", cycle_num, variables.size() + 12 * variables.size());
-#else 
+#else
 		printf("%d / %d\r", cycle_num, variables.size());
 #endif
 		correlate_data << variables.at(i) << ", ";
@@ -398,6 +398,8 @@ int execute_main_analysis(std::vector<row_t> table, std::vector<std::string> var
 	printf("\n");
 
 	printf("Done\n");
+
+	return true;
 }
 
 std::vector<row_t> filter_table(std::vector<row_t> t, period_t p, std::string v, int mth) {
@@ -459,7 +461,7 @@ int execute_main_full_analysis(std::vector<row_t> table, std::vector<std::string
 			printf("Unable to open results file\n");
 			return -1;
 		}
-		
+
 		results << "DATE,Z,P,T,Slope,A,B,R,Mean,CV,Median,NDO,Mean Tide" << std::endl;
 
 		for (unsigned int j = 0; j < periods.size(); j++) { // loop for each period
@@ -467,7 +469,7 @@ int execute_main_full_analysis(std::vector<row_t> table, std::vector<std::string
 			for (int k = 0; k <= 12; k++) {
 				// print progress
 				printf("%d / %d ; %d / %d ; %d / %d        \r", i + 1, variables.size(), j + 1, periods.size(), k, 12);
-				
+
 				// make tables
 				std::vector<row_t> ltable = filter_table(table, periods[j], variables[i], k);
 				if (ltable.size() == 0) {
@@ -475,7 +477,7 @@ int execute_main_full_analysis(std::vector<row_t> table, std::vector<std::string
 					for (custom_var_t cvt : cvars) {
 						if (cvt.name == variables[i]) {
 							filter_by_variable(table, ltable, cvt.pieces, cvt.name, true, true);
-							
+
 							// flag out of bounds
 							for (row_t r : ltable) {
 								if (!date_in_period(r.date, periods[j])) {
@@ -542,7 +544,7 @@ void execute_main_analysis_correlate(std::vector<row_t> table, std::vector<std::
 
 	for (int i = 0; i <= 12; i++) {
 		std::ofstream results(".\\results_full\\corr_" + ((i == 0) ? "yearly" : months[i]) + ".csv");
-		
+
 		for (std::string v : variables)
 			results << "," << v;
 		results << std::endl;

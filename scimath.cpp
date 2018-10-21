@@ -219,13 +219,13 @@ std::vector<row_t> scipy_median_filter(std::vector<row_t> &t, int window) {
 
 	for (unsigned int i = 0; i < t.size(); i++) {
 		std::vector<row_t> a;
-		int n = t.size();
+//		int n = t.size();
 		//printf("smf %d / %d \r", i + 1, n);
 		for (unsigned int j = i - window; j <= i + window; j++) {
 			try {
 				a.push_back(t.at(j));
 			}
-			catch (std::exception &e) {	
+			catch (std::exception &e) {
 				(void)e;
 			}
 		}
@@ -239,7 +239,7 @@ std::vector<row_t> scipy_median_filter(std::vector<row_t> &t, int window) {
 		}
 		else {
 			r.value.v = median(a);
-			r.value.f = isnan(r.value.v);
+			r.value.f = std::isnan(r.value.v);
 		}
 
 		b.push_back(r);

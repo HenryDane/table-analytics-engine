@@ -6,6 +6,8 @@
 #include <fstream>
 #include <vector>
 
+//#define isnan(x) std::isnan(x)
+
 struct date_t {
 	int year;
 	int month;
@@ -61,7 +63,7 @@ struct date_t {
 
 		day_sum += this->year * 365;
 		day_sum += this->day;
-		
+
 		return day_sum;
 	}
 
@@ -190,7 +192,7 @@ enum token_enum_t {
 	MKDB, DELDB, COPYDB,
 	PUSH, POP, SWAP, SIFT, __STACKWIPE,
 	MACRO, MACROF, MACROS, EXECUTE, MACROLOOP, MACROTABLE,
-	FIRSTDATE, LASTDATE, MEAN, MEDIAN, STDDEV, COEFVAR, 
+	FIRSTDATE, LASTDATE, MEAN, MEDIAN, STDDEV, COEFVAR,
 	MANNKENDALLP, MANNKENDALLZ, MANNKENDALLH, MANNKENDALLT, MANNKENDALLTAU,
 	THEILSENSLOPE,
 	LINRA, LINRB, LINRR, POLYREG, EXPREG,
@@ -199,19 +201,19 @@ enum token_enum_t {
 	LINT, POLYINT, NEARINT,
 	OCLIP, NORMALIZE,
 	__LEGACY_INT, __LEGACY_EXECUTE_TOKEN, __LEGACY_EXECUTE_SCRIPT,
-	
+
 	/* variables */
 	__FILEv__, __VAR__, __MVR__, __AGG__, __PER__,
 
 	/* operators */
-	__ADD__, __SUB__, __DIV__, __DIV_FLOOR__, __MULT__, __COPY_LTR__, 
+	__ADD__, __SUB__, __DIV__, __DIV_FLOOR__, __MULT__, __COPY_LTR__,
 
 	/* references */
 	__LITERAL__, __DB_REF__, __VAR_REF__, __TABLE_REF__,
-	__EXTERN_REF__, 
+	__EXTERN_REF__,
 
 	/* meta */
-	__INVALID__, __ERROR__, __COMMENT__, __LABEL__, 
+	__INVALID__, __ERROR__, __COMMENT__, __LABEL__,
 
 	/* empty */
 	EMPTY

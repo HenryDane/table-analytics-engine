@@ -7,7 +7,7 @@
 bool imb_init(interpreter_memblock_t &imb) {
 	period_t p = { "ALL", NONE, { 0, 0, 0, 0, 0 }, { 9999, 99, 99, 99, 99 } };
 	imb.active_period = p;
-	int state = 0;
+//	int state = 0;
 
 	imb.agg = "__UNDEFINED__";
 	imb.var = "__UNDEFINED__";
@@ -77,7 +77,7 @@ bool imb_build_table(interpreter_memblock_t &imb,
 		filter_by_variable(imb.table, ctable, imb.variables, cvr.name, true, true);
 		imb.table.insert(imb.table.begin(), ctable.begin(), ctable.end());
 	}
-	
+
 	return true;
 }
 
@@ -115,18 +115,21 @@ bool imb_build_agg_table(interpreter_memblock_t &imb,
 			case DAILY:
 				if (r.date.year == s.date.year &&
 					r.date.month == s.date.month &&
-					r.date.day == s.date.day) 
+					r.date.day == s.date.day)
 					ok = true;
 				break;
 			case MONTHLY:
 				if (r.date.year == s.date.year &&
-					r.date.month == s.date.month) 
+					r.date.month == s.date.month)
 					ok = true;
 				break;
 			case YEARLY:
 				if (r.date.year == s.date.year)
 					ok = true;
 				break;
+            default:
+                printf("AGGREGATION NOT LISTED\n");
+                abort();
 			}
 
 			if (ok) {
@@ -145,7 +148,7 @@ bool imb_build_agg_table(interpreter_memblock_t &imb,
 
 bool imb_set_period(interpreter_memblock_t &imb, period_t p) {
 	if (imb.active_period.start == p.start &&
-		imb.active_period.end == p.end) 
+		imb.active_period.end == p.end)
 		return true;
 
 	imb.active_period = p;
@@ -416,10 +419,11 @@ bool imb_save_enumerated_file(interpreter_memblock_t &imb, std::ofstream &o) {
 		TODO:
 		- write basic header
 		- write DB save
-		- write tokens with links to associated 
+		- write tokens with links to associated
 		- write associated
 		- write footer
 	*/
+	return false;
 }
 
 bool imb_open_enumerated_file(interpreter_memblock_t &imb, std::ifstream &i, std::vector<token_t> &toks) {
@@ -428,6 +432,7 @@ bool imb_open_enumerated_file(interpreter_memblock_t &imb, std::ifstream &i, std
 		- read in all data in loop until hit footer
 		- validate via header
 	*/
+	return false;
 }
 
 bool imb_execute_script(interpreter_memblock_t &imb, std::vector<token_t> toks) {
@@ -438,11 +443,11 @@ bool imb_execute_script(interpreter_memblock_t &imb, std::vector<token_t> toks) 
 }
 
 bool imb_edit_flags(interpreter_memblock_t &imb, std::string s) {
-
+    return false;
 }
 
 bool imb_alter_db_flags(interpreter_memblock_t &imb, std::string s) {
-
+    return false;
 }
 
 bool imb_execute_script(interpreter_memblock_t &imb, std::ifstream &i) {

@@ -19,7 +19,7 @@ bool filter_bounds(std::vector<row_t> &table, double lbound, double ubound) {
 
 bool filter_norepeats(std::vector<row_t> &table, unsigned int threshold) {
 	std::vector<double> a;
-	
+
 	// file list a with first threshold values of table
 	if (threshold >= table.size()) {
 		return true;
@@ -39,7 +39,7 @@ bool filter_norepeats(std::vector<row_t> &table, unsigned int threshold) {
 
 		// if all elements in a are equal
 		if (std::adjacent_find(a.begin(), a.end(), std::not_equal_to<double>()) == a.end()) {
-			
+
 			// find address of first element
 			int first_index = i - threshold;
 			if (first_index < 0) {
@@ -61,6 +61,8 @@ bool filter_norepeats(std::vector<row_t> &table, unsigned int threshold) {
 			a[threshold - 1] = table[i].value.v;
 		}
 	}
+
+	return true;
 }
 
 bool filter_med_outliers(std::vector<row_t> &table,
@@ -97,7 +99,7 @@ bool filter_med_outliers(std::vector<row_t> &table,
 
 		for (unsigned int k = 0; k < table.size(); k++) {
 			printf("%d / %d \r", k + 1, table.size());
-			if (isnan(secscale)) {
+			if (std::isnan(secscale)) {
 				int slicelow = std::max((unsigned int) 0, k - ((secfilt_len - 1) / 2));
 				int slicehigh = std::min(table.size(), k + ((secfilt_len - 1) / 2) + 1);
 
@@ -136,7 +138,7 @@ bool filter_med_outliers(std::vector<row_t> &table,
 
 	for (unsigned int k = 0; k < table.size(); k++) {
 		printf("%d / %d \r", k + 1, table.size());
-		if (isnan(scale)) {
+		if (std::isnan(scale)) {
 			int slicelow = std::max((unsigned int) 0, k - ((filter_len - 1) / 2));
 			int slicehigh = std::min(table.size(), k + ((filter_len - 1) / 2) + 1);
 
@@ -159,11 +161,13 @@ bool filter_med_outliers(std::vector<row_t> &table,
 			table[k].value.f = true;
 		}
 	}
+
+	return true;
 }
 
 bool filter_delta_limit(std::vector<row_t> &table, double delta_limit) {
 	reflag_table(table);
-	
+
 	for (unsigned int i = 0; i < table.size(); i++) {
 		table[i].edits = 0;
 	}
@@ -181,7 +185,7 @@ bool filter_delta_limit(std::vector<row_t> &table, double delta_limit) {
 
 			table[i].edits = 10;
 			table[i + 1].edits = 10;
-			
+
 		}
 	}
 
@@ -234,7 +238,7 @@ void resolve_table_state(std::vector<row_t> &table){
 			}
 		}
 	}
-	
+
 
 }
 
@@ -281,6 +285,8 @@ int old_table_agg(std::vector<row_t> &table) {
 	outputa.close();
 
 	table = table_agg;
+
+	return true;
 }
 
 void period_filter(std::vector<row_t> &table, period_t period) {
@@ -316,7 +322,7 @@ bool degap_table_monthly(std::vector<row_t> &table) {
 
 	printf("%s -> %s\n", date_toString(table.at(0).date).c_str(), date_toString(table.at(table.size() - 1).date).c_str());
 	for (unsigned int i = 0; i < table.size() - 1; i++) {
-		int mth_diff = (table.at(i + 1).date.year * 12 + table.at(i + 1).date.month) - 
+		int mth_diff = (table.at(i + 1).date.year * 12 + table.at(i + 1).date.month) -
 			(table.at(i).date.year * 12 + table.at(i).date.month);
 
 		if (mth_diff > 1) {
@@ -397,7 +403,7 @@ int read_db(std::ifstream &data, std::vector<row_t> &table) {
 		date_components = split(time, ':');
 		row.date.hours = std::stoi(date_components.at(0));
 		row.date.minuites = std::stoi(date_components.at(1));
-		if (row.date.day != 1) ("%d %d %d\n", row.date.month, row.date.day, row.date.year);
+		if (row.date.day != 1) printf("%d %d %d\n", row.date.month, row.date.day, row.date.year);
 		row.units = units;
 		row.state = std::stoi(state);
 
@@ -444,6 +450,6 @@ std::vector<row_t> normalize_table(std::vector<row_t> t, std::vector<std::string
 
 		nt.insert(nt.begin(), vt.begin(), vt.end());
 	}
-	
+
 	return nt;
 }

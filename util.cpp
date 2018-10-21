@@ -139,9 +139,9 @@ bool date_sort_dr(date_t i, date_t j) {
 	return false;
 }
 
-void filter_by_variable(std::vector<row_t> table, 
-		std::vector<row_t> &otable, 
-		std::vector<std::string> varnames, 
+void filter_by_variable(std::vector<row_t> table,
+		std::vector<row_t> &otable,
+		std::vector<std::string> varnames,
 		std::string rename,
 		bool merge,
 		bool f_rename) {
@@ -178,8 +178,8 @@ void filter_by_variable(std::vector<row_t> table,
 				if (ltable.at(i).date.day == ltable.at(j).date.day &&
 					ltable.at(i).date.month == ltable.at(j).date.month &&
 					ltable.at(i).date.year == ltable.at(j).date.year) {
-					ltable.at(i).value.f = (ltable.at(i).value.f || isnan(ltable.at(i).value.v)) ? true : false;
-					ltable.at(j).value.f = (ltable.at(j).value.f || isnan(ltable.at(j).value.v)) ? true : false;
+					ltable.at(i).value.f = (ltable.at(i).value.f || std::isnan(ltable.at(i).value.v)) ? true : false;
+					ltable.at(j).value.f = (ltable.at(j).value.f || std::isnan(ltable.at(j).value.v)) ? true : false;
 					if (ltable.at(i).value.f) {
 						ltable.at(i) = ltable.at(j);
 						// dont incr tho because "nothing happened"
@@ -192,14 +192,14 @@ void filter_by_variable(std::vector<row_t> table,
 						ltable.at(i).value.v += ltable.at(j).value.v;
 						ltable.at(i).edits++; // to track divisor in avg
 					}
-					
+
 					// mark J as bad
 					ltable.at(j).id = -100;
 					ltable.at(j).value.v = 0;
 
 					// redo the flags
-					ltable.at(i).value.f = (ltable.at(i).value.f || isnan(ltable.at(i).value.v)) ? true : false;
-					ltable.at(j).value.f = (ltable.at(j).value.f || isnan(ltable.at(j).value.v)) ? true : false;
+					ltable.at(i).value.f = (ltable.at(i).value.f || std::isnan(ltable.at(i).value.v)) ? true : false;
+					ltable.at(j).value.f = (ltable.at(j).value.f || std::isnan(ltable.at(j).value.v)) ? true : false;
 				}
 			}
 		}
@@ -228,7 +228,7 @@ void filter_by_variable(std::vector<row_t> table,
 		printf("failed to write to [%s]\n", name.c_str());
 		return;
 	}
-#endif 
+#endif
 
 	try {
 		std::sort(otable.begin(), otable.end(), date_sort);
@@ -399,7 +399,7 @@ void print_table_c(std::vector<row_t> &t) {
 
 void reflag_table(std::vector<row_t> &t) {
 	for (unsigned int i = 0; i < t.size(); i++)
-		t[i].value.f = t[i].value.f || isnan(t[i].value.v);
+		t[i].value.f = t[i].value.f || std::isnan(t[i].value.v);
 }
 
 bool date_in_period(date_t d, period_t p) {
@@ -525,28 +525,28 @@ void strip_null(std::vector<row_t> &a, std::vector<row_t> &b, std::vector<row_t>
 
 	// write
 	for (unsigned int i = 0; i < a.size(); i++) {
-		if (a[i].value.f || isnan(a[i].value.v)) {
+		if (a[i].value.f || std::isnan(a[i].value.v)) {
 			a[i].id = -10;
 			forbidden_dates.push_back(a[i].date);
 		}
 	}
 	//printf("F.D.: %d\n", forbidden_dates.size());
 	for (unsigned int i = 0; i < b.size(); i++) {
-		if (b[i].value.f || isnan(b[i].value.v)) {
+		if (b[i].value.f || std::isnan(b[i].value.v)) {
 			b[i].id = -10;
 			forbidden_dates.push_back(b[i].date);
 		}
 	}
 	//printf("F.D.: %d\n", forbidden_dates.size());
 	for (unsigned int i = 0; i < c.size(); i++) {
-		if (c[i].value.f || isnan(c[i].value.v)) {
+		if (c[i].value.f || std::isnan(c[i].value.v)) {
 			c[i].id = -10;
 			forbidden_dates.push_back(c[i].date);
 		}
 	}
 	//printf("F.D.: %d\n", forbidden_dates.size());
 
-	// read 
+	// read
 	for (unsigned int i = 0; i < a.size(); i++) {
 		for (unsigned int j = 0; j < forbidden_dates.size(); j++) {
 			if (a[i].date == forbidden_dates[j]) {
@@ -603,7 +603,7 @@ void null_shield(std::vector<row_t> &table) {
 	//printf("null_shield() -> inital: %d [%d]", t.size(), table.size());
 	table.clear();
 	for (unsigned int i = 0; i < t.size(); i++) {
-		if (!isnan(t.at(i).value.v)) {
+		if (!std::isnan(t.at(i).value.v)) {
 			table.push_back(t.at(i));
 		}
 	}
@@ -637,8 +637,8 @@ s_double_t safe_add(s_double_t &a, s_double_t &b) {
 	s_double_t r;
 
 	// update
-	a.f = (a.f || isnan(a.v)) ? true : false;
-	b.f = (b.f || isnan(b.v)) ? true : false;
+	a.f = (a.f || std::isnan(a.v)) ? true : false;
+	b.f = (b.f || std::isnan(b.v)) ? true : false;
 
 	if (a.f && (!b.f)) {
 		r.v = b.v;
@@ -829,10 +829,10 @@ bool name_pair_sort(name_pair_t left, name_pair_t right) {
 
 void print_wide_table(std::vector<row_t> table){
 	std::ofstream ooo("ooooo.csv");
-	
+
 	// list of all dates in the list
 	std::vector<date_t> dates;
-	
+
 	for (row_t r : table) {
 		if (r.date.year < 1900) continue;
 		bool found = false;
@@ -883,7 +883,7 @@ void print_wide_table(std::vector<row_t> table){
 		wtable.push_back(wt);
 	}
 
-	for (int i = 0; i < wtable.size(); i++) {
+	for (unsigned int i = 0; i < wtable.size(); i++) {
 		std::sort(wtable[i].data.begin(), wtable[i].data.end(), name_pair_sort);
 	}
 
@@ -892,11 +892,11 @@ void print_wide_table(std::vector<row_t> table){
 		ooo << npt.name << ",";
 	}
 	ooo << std::endl;
-	
-	for (int i = 0; i < wtable.size(); i++) {
+
+	for (unsigned int i = 0; i < wtable.size(); i++) {
 		ooo << wtable[i].date.toString() << ",";
 		for (name_pair_t npt : wtable[0].data) {
-			ooo << (isnan(npt.value) ? std::string("NAN") : std::to_string(npt.value)) << ",";
+			ooo << (std::isnan(npt.value) ? std::string("NAN") : std::to_string(npt.value)) << ",";
 		}
 		ooo << std::endl;
 	}

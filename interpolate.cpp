@@ -30,7 +30,7 @@ void linear_interpolate(std::vector<row_t> &t) {
 			}
 
 			t[i].value.v = t[i - 1].value.v + (m * (date_as_day(t[i].date) - date_as_day(t[i - 1].date)));
-			t[i].value.f = isnan(t[i].value.v);
+			t[i].value.f = std::isnan(t[i].value.v);
 
 		}
 	}

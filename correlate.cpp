@@ -40,11 +40,11 @@ double correlation(std::vector<row_t> tablea, std::vector<row_t> tableb, bool d)
 	if (n == 0) {
 		return INFINITY;
 	}
-	
+
 	int s = 0;
 	for (unsigned int i = 0; i < n; i++){
 		if (tablea.at(i).value.f || tableb.at(i).value.f ||
-			isnan(tablea.at(i).value.v) || isnan(tableb.at(i).value.v)) {
+			std::isnan(tablea.at(i).value.v) || std::isnan(tableb.at(i).value.v)) {
 			//if (d) printf("I FOUND A NULL!\n");
 			s++;
 			continue;
@@ -88,7 +88,7 @@ double partial_correlate(std::vector<row_t> A, std::vector<row_t> B, std::vector
 	int num = -1;
 
 	// sums
-	double sum_a = 0; 
+	double sum_a = 0;
 	double sum_b = 0;
 	double sum_z = 0;
 	double sum_ab = 0;
@@ -113,12 +113,18 @@ double partial_correlate(std::vector<row_t> A, std::vector<row_t> B, std::vector
 	}
 	date_t end_date = { 9999, 99, 99, 99, 99 };
 	try {
-		end_date = min_date(A.at(A.size() - 1).date, min_date(B.at(B.size() - 1).date, Z.at(Z.size() - 1).date));
+	    date_t t1 = A.at(A.size() - 1).date;
+	    date_t t2 = B.at(B.size() - 1).date;
+	    date_t t3 = Z.at(Z.size() - 1).date;
+	    date_t t4 = min_date(t2, t3);
+		end_date = min_date(t1, t4);
 	} catch (std::exception &e) {
 		printf("%d %d %d !!! [%s]\n", A.size(), B.size(), Z.size(), e.what());
 		printf("%s %s\n", B.at(0).variable.c_str(), Z.at(0).variable.c_str());
 	}
-	date_t start_date = max_date(A.at(0).date, max_date(B.at(0).date, Z.at(0).date));
+
+	date_t t5 = max_date(B.at(0).date, Z.at(0).date);
+	date_t start_date = max_date(A.at(0).date, t5);
 	//printf("clippng\n");
 
 	// clip start date
@@ -200,7 +206,7 @@ double partial_correlate(std::vector<row_t> A, std::vector<row_t> B, std::vector
 	for (int i = 0; i < num; i++) {
 		//printf("A: %f B: %f Z: %f\n", A[i].value.v, B[i].value.v, Z[i].value.v);
 		if (A.at(i).value.f || B.at(i).value.f || Z.at(i).value.f ||
-			isnan(A.at(i).value.v) || isnan(B.at(i).value.v) || isnan(Z.at(i).value.v)) {
+			std::isnan(A.at(i).value.v) || std::isnan(B.at(i).value.v) || std::isnan(Z.at(i).value.v)) {
 			if (d) printf("Skipped \n");
 			continue;
 		}
@@ -253,4 +259,4 @@ double partial_correlate(std::vector<row_t> A, std::vector<row_t> B, std::vector
 	}
 
 	return r_ab_nz;
-} 
+}

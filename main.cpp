@@ -191,7 +191,7 @@ int main() {
 			outtmp << std::endl;
 		}
 		outtmp.close();
-		
+
 		//gen_plot(local_result_table);
 
 		//table_fixed.reserve(table_fixed.size() + local_result_table.size());
@@ -212,7 +212,7 @@ int main() {
 #if F_AGG_YEARLY == 1
 
 #endif
-	
+
 	std::vector<std::string> scripts;
 	execute_config(variables, rules, cvars, scripts);
 	// gen cvar ts data
@@ -314,7 +314,7 @@ int main() {
 	std::vector<row_t> _sal;
 	filter_by_variable(table, _8r, cvars.at(2).pieces, "8RIVER", true);
 	filter_by_variable(table, _sal, cvars.at(3).pieces, "SALINITY", true);
-	for (int j = 0; j < table.size(); j++) {
+	for (unsigned int j = 0; j < table.size(); j++) {
 		ofile << table.at(j).id << ",";
 		ofile << date_toString(table.at(j).date).c_str() << ",";
 		ofile << table.at(j).date.month << ",";
@@ -326,7 +326,7 @@ int main() {
 		else {
 			ofile << table.at(j).value.v << ",";
 		}
-		
+
 		for (row_t r : _8r) {
 			if (r.date == table[j].date) {
 				ofile << r.value.v << ",";
@@ -339,7 +339,7 @@ int main() {
 				break;
 			}
 		}
-		 
+
 		ofile << table[j].units << std::endl;
 	}
 	ofile.close();
@@ -382,7 +382,7 @@ int main() {
 		ofile.close();
 	}
 
-	
+
 	for (unsigned int i = 0; i < cvars.size(); i++) {
 		std::ofstream ofile;
 		std::string fname = "ts\\" + cvars.at(i).name + ".csv";
@@ -411,7 +411,7 @@ int main() {
 			}
 			ofile << t.at(j).units << std::endl;
 		}
-		
+
 		ofile.close();
 	}
 #endif
@@ -432,7 +432,7 @@ int main() {
 		//printf("i: %d\n", i);
 		std::vector<row_t> vtable;
 		//printf("f: %d\n", found);
-		
+
 		for (unsigned int j = 0; j < table.size(); j++) {
 			if (table.at(j).variable == variables.at(i)) {
 				row_t r = table.at(j);
@@ -468,7 +468,7 @@ table_cleanup_begin:
 	printf("Updated table size: %d\n", table.size());
 	variable_times_file << "Clipped to, " << date_toString(sdates.at(0)).c_str() << ", " << date_toString(edates.at(0)).c_str() << ", " << table.size() << std::endl;
 	variable_times_file.close();
-#endif 
+#endif
 
 	printf("Executing scripts\n");
 
@@ -490,15 +490,15 @@ table_cleanup_begin:
 	period = { "Post_WP", YEARLY, { 1967, 10, 0 }, { 2017, 9, 31 } }; periods.push_back(period);
 	period = { "Pre_SMSCG", YEARLY, { 0, 0, 0 }, { 1987, 9, 31 } }; periods.push_back(period);
 	period = { "Post_SMSCG", YEARLY, { 1987, 10, 1 }, { 9999, 99, 99 } }; periods.push_back(period);
-	execute_main_full_analysis(table, variables, periods, cvars); 
+	execute_main_full_analysis(table, variables, periods, cvars);
 	execute_main_analysis_correlate(table, variables, cvars);
 
 	return 0;
 }
 
-bool execute_config(std::vector<std::string> &variables, 
-		std::vector<variable_t> &rules, 
-		std::vector<custom_var_t> &cvars, 
+bool execute_config(std::vector<std::string> &variables,
+		std::vector<variable_t> &rules,
+		std::vector<custom_var_t> &cvars,
 		std::vector<std::string> &scripts) {
 
 	std::ifstream cfg;
@@ -605,7 +605,7 @@ bool execute_config(std::vector<std::string> &variables,
 			//printf("apply to: ");
 			//for (int h = 0; h < apply_to.size(); h++) {
 			//	printf("%s ", apply_to.at(h).c_str());
-			//} 
+			//}
 			//printf("\n");
 			apply_rules(apply_to, rules_list, variables, rules);
 		} else if (selection.c_str()[0] == '&') {
